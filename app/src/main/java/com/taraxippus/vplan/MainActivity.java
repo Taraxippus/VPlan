@@ -115,6 +115,11 @@ public class MainActivity extends AppCompatActivity
 				
 		});
 		
+		if (Calendar.getInstance().get(Calendar.HOUR_OF_DAY) > 16)
+		{
+			viewPager.setCurrentItem(1);
+		}
+		
 		tabLayout = (TabLayout) this.findViewById(R.id.sliding_tabs);
 		tabLayout.setupWithViewPager(viewPager);
 	}
@@ -262,6 +267,7 @@ public class MainActivity extends AppCompatActivity
 			Matcher m = Pattern.compile("<tr").matcher(contentAsString);
 			
 			int i = 0;
+			int abc = 0;
 			
 			while (m.find())
 			{
@@ -269,7 +275,7 @@ public class MainActivity extends AppCompatActivity
 				
 				if (i > 2)
 				{
-					addColumns(result, contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())));
+					abc = addColumns(result, contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), abc);
 				}
 			}
 			
@@ -301,7 +307,7 @@ public class MainActivity extends AppCompatActivity
 		return new String(sb);
 	}
 	
-	public void addColumns(ArrayList<View> result, String row)
+	public int addColumns(ArrayList<View> result, String row, int abc)
 	{
 		Matcher m = Pattern.compile("<td").matcher(row);
 
@@ -314,12 +320,17 @@ public class MainActivity extends AppCompatActivity
 		CardView card = new CardView(this);
 		
 		card.setClickable(true);
-		card.setForeground();
+		
+		TypedValue outValue = new TypedValue();
+		getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+		
+		card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
 		
 		float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
 		
 		card.setCardElevation(dp / 4F);
 		card.setUseCompatPadding(true);
+		card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
 		
 		StringBuilder sb = new StringBuilder();
 		
@@ -329,16 +340,18 @@ public class MainActivity extends AppCompatActivity
 			index = row.indexOf(">", m.start());
 			column = row.substring(index + 1, row.indexOf("<", index)).replace("&nbsp;", "").replace("\n", "").replace("  ", " ");
 			
-			if (i == 1 && !ROW.isEmpty() && !column.equalsIgnoreCase(ROW))
-			{
-				return;
-			}
-			
 			if (i == 1)
 			{
-				if (column.isEmpty())
+				if (column.equalsIgnoreCase("E") || column.equalsIgnoreCase("Q1") || column.equalsIgnoreCase("Q2"))
 				{
-					return;
+					column = column + (abc == 0 ? "a" : abc == 1 ? "b" : "c");
+					
+					abc = (abc + 1) % 3;
+				}
+				
+				if (column.isEmpty() || !ROW.isEmpty() && !column.equalsIgnoreCase(ROW) && !column.contains(ROW))
+				{
+					return abc;
 				}
 				
 				TextView text = new TextView(this);
@@ -384,5 +397,7 @@ public class MainActivity extends AppCompatActivity
 		card.addView(text);
 		
 		result.add(card);
+		
+		return abc;
 	}
 }

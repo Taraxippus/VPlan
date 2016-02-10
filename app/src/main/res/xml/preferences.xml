@@ -4,12 +4,13 @@
 	<CheckBoxPreference
         android:key="notification"
         android:title="Benachrichtungen"
-        android:summary="Lege fest, ob du morgens eine Benachrichtung bekommen möchtest, wenn etwas ausfällt"
+   	    android:summary="Lege fest, ob du morgens eine Benachrichtung bekommen möchtest, wenn etwas ausfällt"
         android:defaultValue="true" />
 	
     <ListPreference
         android:key="row"
         android:title="Klasse"
+		android:summary="Lege fest, für welche Klasse du den Vertretungsplan sehen möchtest"
         android:dialogTitle="Klasse"
         android:entries="@array/rows"
         android:entryValues="@array/rows_values"
