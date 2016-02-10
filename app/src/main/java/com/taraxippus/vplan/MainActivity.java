@@ -17,6 +17,8 @@ import java.util.regex.*;
 
 import android.support.v7.widget.Toolbar;
 import android.preference.*;
+import java.util.*;
+import android.util.*;
 
 public class MainActivity extends AppCompatActivity 
 {
@@ -61,7 +63,7 @@ public class MainActivity extends AppCompatActivity
 					
 					if (position == 0)
 					{
-						layout_today = (TextView) layout.findViewById(R.id.text);
+						layout_today = (LinearLayout) layout.findViewById(R.id.layout_cards);
 						
 						swipeLayout_today = (SwipeRefreshLayout)layout.findViewById(R.id.layout_swipe);
 						swipeLayout_today.setColorSchemeResources(R.color.accent);
@@ -69,7 +71,7 @@ public class MainActivity extends AppCompatActivity
 					}
 					else
 					{
-						layout_tomorrow = (TextView) layout.findViewById(R.id.text);
+						layout_tomorrow = (LinearLayout) layout.findViewById(R.id.layout_cards);
 						
 						swipeLayout_tomorrow = (SwipeRefreshLayout)layout.findViewById(R.id.layout_swipe);
 						swipeLayout_tomorrow.setColorSchemeResources(R.color.accent);
@@ -159,10 +161,10 @@ public class MainActivity extends AppCompatActivity
 		
 		try
 		{
-			new AsyncTask<String, Void, String>()
+			new AsyncTask<String, Void, ArrayList<View>>()
 			{
 				@Override
-				protected String doInBackground(String... urls)
+				protected ArrayList<View> doInBackground(String... urls)
 				{
 					try
 					{
@@ -172,22 +174,33 @@ public class MainActivity extends AppCompatActivity
 					{
 						e.printStackTrace();
 						
-						return "Error: " + e;
+						final TextView text = new TextView(MainActivity.this);
+						final ArrayList<View> list = new ArrayList<>();
+						
+						text.setText("Error: " + e);
+						list.add(text);
+						return list;
 					}
 				}
 				
 				@Override
-				protected void onPostExecute(String result)
+				protected void onPostExecute(ArrayList<View> result)
 				{
-					layout_today.setText(Html.fromHtml(result));
+					layout_today.removeAllViews();
+					
+					for (View v : result)
+					{
+						layout_today.addView(v);
+					}
+				
 					swipeLayout_today.setRefreshing(false);
 				}
 			}.execute(URL_TODAY);
 			
-			new AsyncTask<String, Void, String>()
+			new AsyncTask<String, Void, ArrayList<View>>()
 			{
 				@Override
-				protected String doInBackground(String... urls)
+				protected ArrayList<View> doInBackground(String... urls)
 				{
 					try
 					{
@@ -197,14 +210,25 @@ public class MainActivity extends AppCompatActivity
 					{
 						e.printStackTrace();
 
-						return "Error: " + e;
+						final TextView text = new TextView(MainActivity.this);
+						final ArrayList<View> list = new ArrayList<>();
+
+						text.setText("Error: " + e);
+						list.add(text);
+						return list;
 					}
 				}
 
 				@Override
-				protected void onPostExecute(String result)
+				protected void onPostExecute(ArrayList<View> result)
 				{
-					layout_tomorrow.setText(Html.fromHtml(result));
+					layout_tomorrow.removeAllViews();
+
+					for (View v : result)
+					{
+						layout_tomorrow.addView(v);
+					}
+
 					swipeLayout_tomorrow.setRefreshing(false);
 				}
 			}.execute(URL_TOMORROW);
@@ -215,8 +239,10 @@ public class MainActivity extends AppCompatActivity
 		}
 	}
 	
-	private String downloadUrl(String myurl) throws IOException
+	private ArrayList<View> downloadUrl(String myurl) throws IOException
 	{
+		final ArrayList<View> result = new ArrayList<>();
+		
 		InputStream is = null;
 
 		try 
@@ -232,8 +258,6 @@ public class MainActivity extends AppCompatActivity
 			is = conn.getInputStream();
 			String contentAsString = readIt(is);
 			
-			StringBuilder sb = new StringBuilder();
-			
 			Matcher m = Pattern.compile("<tr").matcher(contentAsString);
 			
 			int i = 0;
@@ -241,13 +265,14 @@ public class MainActivity extends AppCompatActivity
 			while (m.find())
 			{
 				i++;
+				
 				if (i > 2)
 				{
-					addColumns(sb, contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())));
+					addColumns(result, contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())));
 				}
 			}
 			
-			return sb.toString();
+			return result;
 		}
 		finally
 		{
@@ -275,7 +300,7 @@ public class MainActivity extends AppCompatActivity
 		return new String(sb);
 	}
 	
-	public void addColumns(StringBuilder sb, String row)
+	public void addColumns(ArrayList<View> result, String row)
 	{
 		Matcher m = Pattern.compile("<td").matcher(row);
 
@@ -284,6 +309,15 @@ public class MainActivity extends AppCompatActivity
 		String column;
 		
 		String ROW = PreferenceManager.getDefaultSharedPreferences(this).getString("row", "");
+		
+		CardView card = new CardView(this);
+		
+		float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+		
+		card.setCardElevation(dp / 4F);
+		card.setUseCompatPadding(true);
+		
+		StringBuilder sb = new StringBuilder();
 		
 		while (m.find())
 		{
@@ -303,11 +337,18 @@ public class MainActivity extends AppCompatActivity
 					return;
 				}
 				
-				sb.append(column);
-				sb.append(":<br />");
+				TextView text = new TextView(this);
+				text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+				text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+				text.setText(Html.fromHtml("<b>" + column + "</b>"));
+
+				card.addView(text);
 			}
 			else if (i != 10 && !column.isEmpty())
 			{
+				if (sb.length() != 0)
+					sb.append("<br />");
+					
 				if (column.equalsIgnoreCase("f"))
 				{
 					column = "<b>Ausfall</b>";
@@ -327,10 +368,16 @@ public class MainActivity extends AppCompatActivity
 				
 				sb.append((i - 1) + ". ");
 				sb.append(column);
-				sb.append("<br />");
 			}
 		}
 		
-		sb.append("<br />");
+		TextView text = new TextView(this);
+		text.setPadding((int) dp * 2, (int) (dp * 4.5F), (int) dp, (int) dp);
+		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+		text.setText(sb.length() == 0 ? "Regulärer Untericht" : Html.fromHtml(sb.toString()));
+		
+		card.addView(text);
+		
+		result.add(card);
 	}
 }
