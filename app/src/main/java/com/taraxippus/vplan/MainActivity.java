@@ -20,10 +20,10 @@ import android.preference.*;
 
 public class MainActivity extends AppCompatActivity 
 {
-	TextView text_today;
+	LinearLayout layout_today;
 	SwipeRefreshLayout swipeLayout_today;
 	
-	TextView text_tomorrow;
+	LinearLayout layout_tomorrow;
 	SwipeRefreshLayout swipeLayout_tomorrow;
 	
 	ViewPager viewPager;
@@ -31,8 +31,6 @@ public class MainActivity extends AppCompatActivity
 	
 	public static final String URL_TODAY = "http://306.joomla.schule.bremen.de/ServerSync/V-Plan-heute.htm";
 	public static final String URL_TOMORROW = "http://306.joomla.schule.bremen.de/ServerSync/V-Plan-morgen.htm";
-	
-	public static final String ROW = "";
 	
 	public static final String[] TABS = new String[] {"HEUTE", "MORGEN"};
 	
@@ -52,7 +50,6 @@ public class MainActivity extends AppCompatActivity
 			}
 		};
 		
-		
 		viewPager = (ViewPager) this.findViewById(R.id.pager);
 		viewPager.setAdapter(new PagerAdapter()
 		{
@@ -64,7 +61,7 @@ public class MainActivity extends AppCompatActivity
 					
 					if (position == 0)
 					{
-						text_today = (TextView) layout.findViewById(R.id.text);
+						layout_today = (TextView) layout.findViewById(R.id.text);
 						
 						swipeLayout_today = (SwipeRefreshLayout)layout.findViewById(R.id.layout_swipe);
 						swipeLayout_today.setColorSchemeResources(R.color.accent);
@@ -72,7 +69,7 @@ public class MainActivity extends AppCompatActivity
 					}
 					else
 					{
-						text_tomorrow = (TextView) layout.findViewById(R.id.text);
+						layout_tomorrow = (TextView) layout.findViewById(R.id.text);
 						
 						swipeLayout_tomorrow = (SwipeRefreshLayout)layout.findViewById(R.id.layout_swipe);
 						swipeLayout_tomorrow.setColorSchemeResources(R.color.accent);
@@ -182,7 +179,7 @@ public class MainActivity extends AppCompatActivity
 				@Override
 				protected void onPostExecute(String result)
 				{
-					text_today.setText(Html.fromHtml(result));
+					layout_today.setText(Html.fromHtml(result));
 					swipeLayout_today.setRefreshing(false);
 				}
 			}.execute(URL_TODAY);
@@ -207,7 +204,7 @@ public class MainActivity extends AppCompatActivity
 				@Override
 				protected void onPostExecute(String result)
 				{
-					text_tomorrow.setText(Html.fromHtml(result));
+					layout_tomorrow.setText(Html.fromHtml(result));
 					swipeLayout_tomorrow.setRefreshing(false);
 				}
 			}.execute(URL_TOMORROW);
@@ -231,10 +228,6 @@ public class MainActivity extends AppCompatActivity
 			conn.setRequestMethod("GET");
 			conn.setDoInput(true);
 			conn.connect();
-			
-			int response = conn.getResponseCode();
-			
-			
 			
 			is = conn.getInputStream();
 			String contentAsString = readIt(is);
@@ -289,6 +282,8 @@ public class MainActivity extends AppCompatActivity
 		int index;
 		int i = 0;
 		String column;
+		
+		String ROW = PreferenceManager.getDefaultSharedPreferences(this).getString("row", "");
 		
 		while (m.find())
 		{

@@ -24,8 +24,14 @@
 		<activity
 			android:name=".SettingsActivity" 
 			android:label="@string/settings"
-			android:screenOrientation="nosensor">
+			android:screenOrientation="nosensor"
+			android:theme="@style/SettingsTheme"
+			android:parentActivityName=".MainActivity">
 
+			<meta-data
+				android:name="android.support.PARENT_ACTIVITY"
+				android:value=".MainActivity" />
+			
 			<intent-filer>
 				<action android:name=".SettingsActivity" />
 				<category android:name="android.intent.category.PREFERENCE" />
