@@ -16,6 +16,7 @@ import java.net.*;
 import java.util.regex.*;
 
 import android.support.v7.widget.Toolbar;
+import android.preference.*;
 
 public class MainActivity extends AppCompatActivity 
 {
@@ -76,7 +77,10 @@ public class MainActivity extends AppCompatActivity
 						swipeLayout_tomorrow = (SwipeRefreshLayout)layout.findViewById(R.id.layout_swipe);
 						swipeLayout_tomorrow.setColorSchemeResources(R.color.accent);
 						swipeLayout_tomorrow.setOnRefreshListener(refreshListener);
-						
+					}
+					
+					if (swipeLayout_today != null && swipeLayout_tomorrow != null)
+					{
 						swipeLayout_today.setRefreshing(true);
 						swipeLayout_tomorrow.setRefreshing(false);
 						setText();
@@ -127,6 +131,11 @@ public class MainActivity extends AppCompatActivity
 	{
 		switch (item.getItemId())
 		{
+			case R.id.settings:
+				Intent intent = new Intent().setClass(this, SettingsActivity.class);
+				this.startActivityForResult( intent, 0 );
+				return true;
+			
 			default:
 				return false;
 		}
@@ -145,6 +154,7 @@ public class MainActivity extends AppCompatActivity
 		if (!hasInternetConnection())
 		{
 			Toast.makeText(this, "Keine Internetverbindung", Toast.LENGTH_SHORT).show();
+			
 			swipeLayout_today.setRefreshing(false);
 			swipeLayout_tomorrow.setRefreshing(false);
 			return;

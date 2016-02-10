@@ -10,15 +10,28 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+		
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
+			
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+			
         </activity>
-    </application>
+		<activity
+			android:name=".SettingsActivity" 
+			android:label="@string/settings"
+			android:screenOrientation="nosensor">
 
+			<intent-filer>
+				<action android:name=".SettingsActivity" />
+				<category android:name="android.intent.category.PREFERENCE" />
+			</intent-filer>
+
+		</activity>
+		
+    </application>
 </manifest>

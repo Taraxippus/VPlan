@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    
+	<CheckBoxPreference
+        android:key="notification"
+        android:title="Benachrichtungen"
+        android:summary="Lege fest, ob du morgens eine Benachrichtung bekommen möchtest, wenn etwas ausfällt"
+        android:defaultValue="true" />
+	
+    <ListPreference
+        android:key="row"
+        android:title="Klasse"
+        android:dialogTitle="Klasse"
+        android:entries="@array/rows"
+        android:entryValues="@array/rows_values"
+        android:defaultValue="" />
+	
+</PreferenceScreen>
