@@ -19,6 +19,7 @@ import android.support.v7.widget.Toolbar;
 import android.preference.*;
 import java.util.*;
 import android.util.*;
+import android.graphics.drawable.*;
 
 public class MainActivity extends AppCompatActivity 
 {
@@ -312,6 +313,9 @@ public class MainActivity extends AppCompatActivity
 		
 		CardView card = new CardView(this);
 		
+		card.setClickable(true);
+		card.setForeground();
+		
 		float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
 		
 		card.setCardElevation(dp / 4F);
@@ -338,8 +342,9 @@ public class MainActivity extends AppCompatActivity
 				}
 				
 				TextView text = new TextView(this);
+				text.setTextColor(getResources().getColor(R.color.accent));
 				text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-				text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 20);
+				text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
 				text.setText(Html.fromHtml("<b>" + column + "</b>"));
 
 				card.addView(text);
@@ -372,7 +377,7 @@ public class MainActivity extends AppCompatActivity
 		}
 		
 		TextView text = new TextView(this);
-		text.setPadding((int) dp * 2, (int) (dp * 4.5F), (int) dp, (int) dp);
+		text.setPadding((int) dp * 2, (int) (dp * 4F), (int) dp, (int) dp);
 		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
 		text.setText(sb.length() == 0 ? "Regulärer Untericht" : Html.fromHtml(sb.toString()));
 		
