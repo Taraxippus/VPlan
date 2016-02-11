@@ -7,6 +7,12 @@
 	<string name="tomorrow">MORGEN</string>
 	<string name="connection_error">Keine Internetverbindung</string>
 	
+	<string name="notification">Benachrichtungen</string>
+	<string name="notification_summary">Lege fest, ob du jeden morgen über den Vertretungsplan benachrichtigt werden möchtest</string>
+
+	<string name="grade">Klasse</string>
+	<string name="grade_summary">Lege fest, für welche Klasse du den Vertretungsplan sehen möchtest</string>
+	
 	<string-array name="rows">
         <item>Everything</item>
         <item>5a</item>

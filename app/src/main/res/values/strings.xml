@@ -9,6 +9,12 @@
 	<string name="tomorrow">TOMORROW</string>
 	<string name="connection_error">No internet connection</string>
 	
+	<string name="notification">Enable notifications</string>
+	<string name="notification_summary">Enable if you want to get a notification with the latest updates each morning</string>
+	
+	<string name="grade">Grade</string>
+	<string name="grade_summary">Change grade</string>
+	
 	<string-array name="rows">
         <item>Everything</item>
         <item>5a</item>
