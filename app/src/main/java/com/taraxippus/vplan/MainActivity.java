@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity
 	public static final String URL_TODAY = "http://306.joomla.schule.bremen.de/ServerSync/V-Plan-heute.htm";
 	public static final String URL_TOMORROW = "http://306.joomla.schule.bremen.de/ServerSync/V-Plan-morgen.htm";
 	
-	public static final String[] TABS = new String[] {"HEUTE", "MORGEN"};
+	public static final int[] TABS = new int[] {R.string.today, R.string.tomorrow};
 	
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity
 				@Override
 				public CharSequence getPageTitle(int position)
 				{
-					return TABS[position];
+					return getString(TABS[position]);
 				}
 				
 		});
@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity
 	{
 		if (!hasInternetConnection())
 		{
-			Toast.makeText(this, "Keine Internetverbindung", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, R.string.connection_error, Toast.LENGTH_SHORT).show();
 			
 			swipeLayout_today.setRefreshing(false);
 			swipeLayout_tomorrow.setRefreshing(false);
@@ -273,9 +273,29 @@ public class MainActivity extends AppCompatActivity
 			{
 				i++;
 				
+				if (i == 1)
+				{
+					String row = contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start()));
+
+					Matcher m1 = Pattern.compile("<td").matcher(row);
+					m1.find();
+					
+					int index = row.indexOf(">", m1.start());
+					String column = row.substring(index + 1, row.indexOf("<", index));
+					
+					float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+					
+					TextView text = new TextView(this);
+					text.setTextColor(getResources().getColor(R.color.accent));
+					text.setPadding((int) dp / 2, (int) dp, (int) dp, (int) dp);
+					text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+					text.setText(Html.fromHtml("<b>" + column + "</b>"));
+					
+					result.add(text);
+				}
 				if (i > 2)
 				{
-					abc = addColumns(result, contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), abc);
+					abc = addCards(result, contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), abc);
 				}
 			}
 			
@@ -307,7 +327,7 @@ public class MainActivity extends AppCompatActivity
 		return new String(sb);
 	}
 	
-	public int addColumns(ArrayList<View> result, String row, int abc)
+	public int addCards(ArrayList<View> result, String row, int abc)
 	{
 		Matcher m = Pattern.compile("<td").matcher(row);
 
