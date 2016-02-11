@@ -1,13 +1,14 @@
 apply plugin: 'com.android.application'
 
-android {
+android
+{
     compileSdkVersion 21
     buildToolsVersion "21.1.0"
 
     defaultConfig {
         applicationId "com.taraxippus.vplan"
         minSdkVersion 14
-        targetSdkVersion 21
+        targetSdkVersion 14
         versionCode 1
         versionName "1.0"
     }

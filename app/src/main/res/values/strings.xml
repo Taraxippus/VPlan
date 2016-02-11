@@ -2,11 +2,15 @@
 <resources>
 
     <string name="app_name">VPlan</string>
-	<string name="settings">Einstellungen</string>
-	<string name="about">Über diese app</string>
+	<string name="settings">Settings</string>
+	<string name="about">About this app</string>
+	
+	<string name="today">TODAY</string>
+	<string name="tomorrow">TOMORROW</string>
+	<string name="connection_error">No internet connection</string>
 	
 	<string-array name="rows">
-        <item>Alle</item>
+        <item>Everything</item>
         <item>5a</item>
         <item>5b</item>
         <item>5c</item>
