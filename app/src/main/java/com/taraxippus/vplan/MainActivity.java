@@ -200,51 +200,59 @@ public class MainActivity extends AppCompatActivity
 		{
 			Toast.makeText(this, R.string.connection_error, Toast.LENGTH_SHORT).show();
 			
-			if (layout_today.getChildCount() == 0)
-			{
-				CardView card = new CardView(this);
-
-				card.setClickable(true);
-
-				TypedValue outValue = new TypedValue();
-				getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-
-				card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
-
-				float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-
-				card.setCardElevation(dp / 4F);
-				card.setUseCompatPadding(true);
-				card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-				
-				TextView text = new TextView(this);
-				text.setTextColor(getResources().getColor(R.color.accent));
-				text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-				text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-				text.setText(Html.fromHtml("<b>" + getString(R.string.connection_error) + "</b>"));
-				text.setGravity(Gravity.CENTER);
-				
-				card.addView(text);
-				layout_today.addView(card);
-				
-				card = new CardView(this);
-				card.setClickable(true);
-				card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
-				card.setCardElevation(dp / 4F);
-				card.setUseCompatPadding(true);
-				card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-				
-				text = new TextView(this);
-				text.setTextColor(getResources().getColor(R.color.accent));
-				text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-				text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-				text.setText(Html.fromHtml("<b>" + getString(R.string.connection_error) + "</b>"));
-				text.setGravity(Gravity.CENTER);
-				
-				card.addView(text);
-				layout_tomorrow.addView(card);
-			}
+			layout_today.removeAllViews();
 			
+			CardView card = new CardView(this);
+			card.setClickable(true);
+
+			TypedValue outValue = new TypedValue();
+			getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+
+			card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
+
+			float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+
+			card.setCardElevation(dp / 4F);
+			card.setUseCompatPadding(true);
+			card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+
+			TextView text = new TextView(this);
+			text.setTextColor(getResources().getColor(R.color.accent));
+			text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+			text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+			text.setText(Html.fromHtml("<b>" + getString(R.string.connection_error) + "</b>"));
+			text.setGravity(Gravity.CENTER);
+
+			card.addView(text);
+			layout_today.addView(card);
+
+			ArrayList<View> old = updateCards("today_");
+			for (View v : old)
+				layout_today.addView(v);
+
+			layout_tomorrow.removeAllViews();
+				
+			card = new CardView(this);
+			card.setClickable(true);
+			card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
+			card.setCardElevation(dp / 4F);
+			card.setUseCompatPadding(true);
+			card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+
+			text = new TextView(this);
+			text.setTextColor(getResources().getColor(R.color.accent));
+			text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+			text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+			text.setText(Html.fromHtml("<b>" + getString(R.string.connection_error) + "</b>"));
+			text.setGravity(Gravity.CENTER);
+
+			card.addView(text);
+			layout_tomorrow.addView(card);
+
+			old = updateCards("tomorrow_");
+			for (View v : old)
+				layout_tomorrow.addView(v);
+	
 			swipeLayout_today.setRefreshing(false);
 			swipeLayout_tomorrow.setRefreshing(false);
 			return;
