@@ -38,19 +38,8 @@
         <item>9c</item>
 		
 		<item>E</item>
-		<item>Ea</item>
-        <item>Eb</item>
-        <item>Ec</item>
-		
 		<item>Q1</item>
-		<item>Q1a</item>
-        <item>Q1b</item>
-        <item>Q1c</item>
-		
 		<item>Q2</item>
-		<item>Q2a</item>
-        <item>Q2b</item>
-        <item>Q3c</item>
     </string-array>
 	
 	<string-array name="rows_values">
@@ -76,18 +65,7 @@
         <item>9c</item>
 
 		<item>E</item>
-		<item>Ea</item>
-        <item>Eb</item>
-        <item>Ec</item>
-
 		<item>Q1</item>
-		<item>Q1a</item>
-        <item>Q1b</item>
-        <item>Q1c</item>
-
 		<item>Q2</item>
-		<item>Q2a</item>
-        <item>Q2b</item>
-        <item>Q3c</item>
     </string-array>
 </resources>

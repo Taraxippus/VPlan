@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity
 			@Override
 			public void onRefresh()
 			{
-				setText();
+				update();
 			}
 		};
 		
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity
 					{
 						swipeLayout_today.setRefreshing(true);
 						swipeLayout_tomorrow.setRefreshing(false);
-						setText();
+						update();
 					}
 					
 					return layout;
@@ -154,8 +154,11 @@ public class MainActivity extends AppCompatActivity
 		return networkInfo != null && networkInfo.isConnected();
 	}
 	
-	public void setText()
+	public void update()
 	{
+		swipeLayout_today.setRefreshing(true);
+		swipeLayout_tomorrow.setRefreshing(true);
+		
 		if (!hasInternetConnection())
 		{
 			Toast.makeText(this, R.string.connection_error, Toast.LENGTH_SHORT).show();
@@ -174,7 +177,8 @@ public class MainActivity extends AppCompatActivity
 				{
 					try
 					{
-						return downloadUrl(urls[0]);
+						updateInfo(urls[0], "today_");
+						return updateCards("today_");
 					}
 					catch (Exception e)
 					{
@@ -210,7 +214,8 @@ public class MainActivity extends AppCompatActivity
 				{
 					try
 					{
-						return downloadUrl(urls[0]);
+						updateInfo(urls[0], "tomorrow_");
+						return updateCards("tomorrow_");
 					}
 					catch (Exception e)
 					{
@@ -245,9 +250,8 @@ public class MainActivity extends AppCompatActivity
 		}
 	}
 	
-	private ArrayList<View> downloadUrl(String myurl) throws IOException
+	private void updateInfo(String myurl, String prefix) throws IOException
 	{
-		final ArrayList<View> result = new ArrayList<>();
 		
 		InputStream is = null;
 
@@ -267,7 +271,7 @@ public class MainActivity extends AppCompatActivity
 			Matcher m = Pattern.compile("<tr").matcher(contentAsString);
 			
 			int i = 0;
-			int abc = 0;
+			int index = 0;
 			
 			while (m.find())
 			{
@@ -280,26 +284,16 @@ public class MainActivity extends AppCompatActivity
 					Matcher m1 = Pattern.compile("<td").matcher(row);
 					m1.find();
 					
-					int index = row.indexOf(">", m1.start());
-					String column = row.substring(index + 1, row.indexOf("<", index));
+					int index1 = row.indexOf(">", m1.start());
+					String column = row.substring(index1 + 1, row.indexOf("<", index1));
 					
-					float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-					
-					TextView text = new TextView(this);
-					text.setTextColor(getResources().getColor(R.color.accent));
-					text.setPadding((int) dp / 2, (int) dp, (int) dp, (int) dp);
-					text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-					text.setText(Html.fromHtml("<b>" + column + "</b>"));
-					
-					result.add(text);
+					PreferenceManager.getDefaultSharedPreferences(this).edit().putString(prefix + "title", column).commit();
 				}
 				if (i > 2)
-				{
-					abc = addCards(result, contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), abc);
-				}
+					index = parseColumn(contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), index, prefix + index + "_");
 			}
 			
-			return result;
+			PreferenceManager.getDefaultSharedPreferences(this).edit().putInt(prefix + "count", index).commit();
 		}
 		finally
 		{
@@ -327,7 +321,31 @@ public class MainActivity extends AppCompatActivity
 		return new String(sb);
 	}
 	
-	public int addCards(ArrayList<View> result, String row, int abc)
+	public ArrayList<View> updateCards(String prefix)
+	{
+		final ArrayList<View> result = new ArrayList<>();
+		
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+
+		TextView text = new TextView(this);
+		text.setTextColor(getResources().getColor(R.color.accent));
+		text.setPadding((int) dp / 2, (int) dp, (int) dp, (int) dp);
+		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+		text.setText(Html.fromHtml("<b>" + preferences.getString(prefix + "title", "...") + "</b>"));
+
+		result.add(text);
+		
+		int cards = preferences.getInt(prefix + "count", 0);
+		
+		for (int i = 0; i < cards; ++i)
+			addCard(result, preferences.getString(prefix + i +  "_content", ""), preferences.getString(prefix + i +  "_title", ""));
+		
+		return result;
+	}
+	
+	public int parseColumn(String row, int rowIndex, String prefix)
 	{
 		Matcher m = Pattern.compile("<td").matcher(row);
 
@@ -337,22 +355,8 @@ public class MainActivity extends AppCompatActivity
 		
 		String ROW = PreferenceManager.getDefaultSharedPreferences(this).getString("row", "");
 		
-		CardView card = new CardView(this);
-		
-		card.setClickable(true);
-		
-		TypedValue outValue = new TypedValue();
-		getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-		
-		card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
-		
-		float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-		
-		card.setCardElevation(dp / 4F);
-		card.setUseCompatPadding(true);
-		card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-		
 		StringBuilder sb = new StringBuilder();
+		String title = "";
 		
 		while (m.find())
 		{
@@ -362,25 +366,12 @@ public class MainActivity extends AppCompatActivity
 			
 			if (i == 1)
 			{
-				if (column.equalsIgnoreCase("E") || column.equalsIgnoreCase("Q1") || column.equalsIgnoreCase("Q2"))
-				{
-					column = column + (abc == 0 ? "a" : abc == 1 ? "b" : "c");
-					
-					abc = (abc + 1) % 3;
-				}
-				
 				if (column.isEmpty() || !ROW.isEmpty() && !column.equalsIgnoreCase(ROW) && !column.contains(ROW))
 				{
-					return abc;
+					return rowIndex;
 				}
 				
-				TextView text = new TextView(this);
-				text.setTextColor(getResources().getColor(R.color.accent));
-				text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-				text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-				text.setText(Html.fromHtml("<b>" + column + "</b>"));
-
-				card.addView(text);
+				title = column;
 			}
 			else if (i != 10 && !column.isEmpty())
 			{
@@ -409,15 +400,46 @@ public class MainActivity extends AppCompatActivity
 			}
 		}
 		
-		TextView text = new TextView(this);
-		text.setPadding((int) dp * 2, (int) (dp * 4F), (int) dp, (int) dp);
-		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-		text.setText(sb.length() == 0 ? "Regulärer Untericht" : Html.fromHtml(sb.toString()));
+		PreferenceManager.getDefaultSharedPreferences(this).edit()
+		.putString(prefix + "title", title)
+		.putString(prefix + "content", sb.toString())
+		.commit();
 		
+		return ++rowIndex;
+	}
+	
+	public void addCard(ArrayList<View> result, String content, String title)
+	{
+		CardView card = new CardView(this);
+
+		card.setClickable(true);
+
+		TypedValue outValue = new TypedValue();
+		getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+
+		card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
+
+		float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+
+		card.setCardElevation(dp / 4F);
+		card.setUseCompatPadding(true);
+		card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+		
+		TextView text = new TextView(this);
+		text.setTextColor(getResources().getColor(R.color.accent));
+		text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+		text.setText(Html.fromHtml("<b>" + title + "</b>"));
+
 		card.addView(text);
 		
+		text = new TextView(this);
+		text.setPadding((int) dp * 2, (int) (dp * 4F), (int) dp, (int) dp);
+		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
+		text.setText(content.length() == 0 ? "Regulärer Untericht" : Html.fromHtml(content));
+
+		card.addView(text);
+
 		result.add(card);
-		
-		return abc;
 	}
 }
