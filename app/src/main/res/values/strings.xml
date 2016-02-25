@@ -4,6 +4,7 @@
     <string name="app_name">VPlan</string>
 	<string name="settings">Settings</string>
 	<string name="about">About this app</string>
+	<string name="notification_id">com.taraxippus.vplan</string>
 	
 	<string name="today">TODAY</string>
 	<string name="tomorrow">TOMORROW</string>
@@ -14,6 +15,8 @@
 	
 	<string name="grade">Grade</string>
 	<string name="grade_summary">Change grade</string>
+	
+	<string name="about_app"></string>
 	
 	<string-array name="rows">
         <item>Everything</item>

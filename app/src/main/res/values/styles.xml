@@ -19,5 +19,10 @@
 		<item name="android:textColorPrimary">@color/controls</item>
 		<item name="colorControlNormal">@color/controls</item>
 	</style>
+	<style name="AlertDialogTheme" parent="@style/Theme.AppCompat.Light.Dialog.Alert">
+		<item name="android:colorPrimary">@color/primary</item>
+		<item name="android:colorPrimaryDark">@color/primaryDark</item>
+		<item name="android:colorAccent">@color/accent</item>
+	</style>
 </resources>
 

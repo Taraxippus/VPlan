@@ -1,25 +1,29 @@
 package com.taraxippus.vplan;
 
+
+
+import android.app.*;
 import android.content.*;
 import android.net.*;
 import android.os.*;
+import android.preference.*;
 import android.support.design.widget.*;
 import android.support.v4.view.*;
 import android.support.v4.widget.*;
 import android.support.v7.app.*;
 import android.support.v7.widget.*;
 import android.text.*;
+import android.util.*;
 import android.view.*;
 import android.widget.*;
+import com.taraxippus.vplan.*;
 import java.io.*;
 import java.net.*;
+import java.util.*;
 import java.util.regex.*;
 
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
-import android.preference.*;
-import java.util.*;
-import android.util.*;
-import android.graphics.drawable.*;
 
 public class MainActivity extends AppCompatActivity 
 {
@@ -141,6 +145,39 @@ public class MainActivity extends AppCompatActivity
 				this.startActivityForResult( intent, 0 );
 				return true;
 			
+			case R.id.about:
+				
+				final AlertDialog alertDialog = new AlertDialog.Builder(this, R.style.AlertDialogTheme).create();
+				alertDialog.setTitle(R.string.about);
+				alertDialog.setMessage(getString(R.string.about_app));
+				alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new AlertDialog.OnClickListener()
+				{
+						@Override
+						public void onClick(DialogInterface p1, int p2)
+						{
+							p1.dismiss();
+						}
+				});
+				alertDialog.show();
+				
+				return true;
+				
+			case R.id.test:
+				NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+				
+				Notification.Builder notification = new Notification.Builder(this);
+				
+				notification.setContentTitle("Test");
+				notification.setContentText("test");
+				notification.setColor(getResources().getColor(R.color.primary));
+				notification.setSmallIcon(R.drawable.ic_launcher);
+				
+				nm.notify(R.string.notification_id, notification.build());
+				
+				
+				return true;
+				
+				
 			default:
 				return false;
 		}
@@ -162,6 +199,51 @@ public class MainActivity extends AppCompatActivity
 		if (!hasInternetConnection())
 		{
 			Toast.makeText(this, R.string.connection_error, Toast.LENGTH_SHORT).show();
+			
+			if (layout_today.getChildCount() == 0)
+			{
+				CardView card = new CardView(this);
+
+				card.setClickable(true);
+
+				TypedValue outValue = new TypedValue();
+				getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+
+				card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
+
+				float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+
+				card.setCardElevation(dp / 4F);
+				card.setUseCompatPadding(true);
+				card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+				
+				TextView text = new TextView(this);
+				text.setTextColor(getResources().getColor(R.color.accent));
+				text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+				text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+				text.setText(Html.fromHtml("<b>" + getString(R.string.connection_error) + "</b>"));
+				text.setGravity(Gravity.CENTER);
+				
+				card.addView(text);
+				layout_today.addView(card);
+				
+				card = new CardView(this);
+				card.setClickable(true);
+				card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
+				card.setCardElevation(dp / 4F);
+				card.setUseCompatPadding(true);
+				card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+				
+				text = new TextView(this);
+				text.setTextColor(getResources().getColor(R.color.accent));
+				text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+				text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
+				text.setText(Html.fromHtml("<b>" + getString(R.string.connection_error) + "</b>"));
+				text.setGravity(Gravity.CENTER);
+				
+				card.addView(text);
+				layout_tomorrow.addView(card);
+			}
 			
 			swipeLayout_today.setRefreshing(false);
 			swipeLayout_tomorrow.setRefreshing(false);
