@@ -14,7 +14,7 @@
 	<string name="grade_summary">Lege fest, für welche Klasse du den Vertretungsplan sehen möchtest</string>
 	
 	<string-array name="rows">
-        <item>Everything</item>
+        <item>Alle</item>
         <item>5a</item>
         <item>5b</item>
         <item>5c</item>
@@ -38,6 +38,5 @@
 		<item>E</item>
 		<item>Q1</item>
 		<item>Q2</item>
-	
     </string-array>
 </resources>
