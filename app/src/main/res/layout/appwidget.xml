@@ -1,0 +1,59 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="horizontal"
+	android:padding="@dimen/widget_margin">
+    
+	<FrameLayout
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:layout_weight="1"
+		android:elevation="4dp"
+		android:clickable="true"
+		android:background="@color/controls"
+		android:foreground="?android:attr/selectableItemBackground"
+		android:padding="4dp">
+		
+		<TextView 
+			android:id="@+id/text_today"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:padding="4dp"/>
+		
+		<TextView 
+			android:id="@+id/text_today_title"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:textColor="@color/accent"/>
+		
+	</FrameLayout>
+	
+	<FrameLayout
+		android:layout_width="8dp"
+		android:layout_height="fill_parent" />
+	
+	<FrameLayout
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:layout_weight="1"
+		android:elevation="4dp"
+		android:clickable="true"
+		android:background="@color/controls"
+		android:foreground="?android:attr/selectableItemBackground"
+		android:padding="4dp">
+
+		<TextView 
+			android:id="@+id/text_tomorrow"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:padding="4dp"/>
+		
+		<TextView 
+			android:id="@+id/text_tomorrow_title"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:textColor="@color/accent"/>
+		
+	</FrameLayout>
+	
+</LinearLayout>
