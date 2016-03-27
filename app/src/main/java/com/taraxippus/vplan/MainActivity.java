@@ -1,7 +1,5 @@
 package com.taraxippus.vplan;
 
-
-
 import android.app.*;
 import android.content.*;
 import android.net.*;
@@ -16,9 +14,9 @@ import android.text.*;
 import android.util.*;
 import android.view.*;
 import android.widget.*;
-import com.taraxippus.vplan.*;
 import java.io.*;
 import java.net.*;
+import java.nio.charset.*;
 import java.util.*;
 import java.util.regex.*;
 
@@ -40,6 +38,74 @@ public class MainActivity extends AppCompatActivity
 	public static final String URL_TOMORROW = "http://306.joomla.schule.bremen.de/ServerSync/V-Plan-morgen.htm";
 	
 	public static final int[] TABS = new int[] {R.string.today, R.string.tomorrow};
+	
+	public static final HashMap<String, String> TEACHERS = new HashMap<>();
+	
+	static
+	{
+		TEACHERS.put("Asl", "Aslan");
+		TEACHERS.put("Bac", "Bachmann");
+		TEACHERS.put("Bal", "Balster");
+		TEACHERS.put("Bas", "Basedow");
+		TEACHERS.put("Bcm", "Beckmann");
+		TEACHERS.put("Bes", "von Bestenbostel");
+		TEACHERS.put("Brt", "Birth");
+		TEACHERS.put("Böh", "Böhm");
+		TEACHERS.put("Bnt", "Brannath");
+		TEACHERS.put("Gom", "Cano Gómez");
+		TEACHERS.put("DA", "Dall Asta");
+		TEACHERS.put("Dit", "Dittrich");
+		TEACHERS.put("Dry", "Dreyer");
+		TEACHERS.put("Ehl", "Ehlers");
+		TEACHERS.put("Fng", "Fangmann");
+		TEACHERS.put("Far", "Farke");
+		TEACHERS.put("Gev", "Gevers");
+		TEACHERS.put("Gro", "Groothius");
+		TEACHERS.put("Grü", "Grüschow");
+		TEACHERS.put("Hah", "Hahn");
+		TEACHERS.put("Hai", "Haiduck");
+		TEACHERS.put("Han", "Hain");
+		TEACHERS.put("Ham", "Hamann");
+		TEACHERS.put("Haf", "Harf");
+		TEACHERS.put("Hsh", "Heilshorn");
+		TEACHERS.put("Hsm", "Hesemann");
+		TEACHERS.put("Hle", "Hille");
+		TEACHERS.put("Hub", "Hubig");
+		TEACHERS.put("Ktv", "Kalitovics");
+		TEACHERS.put("Kau", "Kaufhold");
+		TEACHERS.put("Kli", "Klingbeil");
+		TEACHERS.put("Kön", "König");
+		TEACHERS.put("Küt", "Küthmann");
+		TEACHERS.put("Lan", "Lange");
+		TEACHERS.put("Leh", "Lehmann");
+		TEACHERS.put("Leo", "Leo");
+		TEACHERS.put("Mmr", "Marxmeier");
+		TEACHERS.put("Mey", "Meyer");
+		TEACHERS.put("Mlr", "Marielle Müller");
+		TEACHERS.put("Mür", "Verena Müller");
+		TEACHERS.put("Orl", "Orlik");
+		TEACHERS.put("Qui", "Quiring");
+		TEACHERS.put("Red", "Rediske");
+		TEACHERS.put("Rem", "Reimer");
+		TEACHERS.put("RK", "Riemann-Kurtz");
+		TEACHERS.put("San", "Sander");
+		TEACHERS.put("Shb", "Scheibe");
+		TEACHERS.put("Sla", "Schlachter");
+		TEACHERS.put("Sct", "Schulte");
+		TEACHERS.put("Shw", "Schwarze");
+		TEACHERS.put("Spi", "Spiecker");
+		TEACHERS.put("Ste", "Steinberg");
+		TEACHERS.put("Tlb", "Thielebein");
+		TEACHERS.put("Tre", "Treichel");
+		TEACHERS.put("Les", "van Lessen");
+		TEACHERS.put("Vig", "Vignais");
+		TEACHERS.put("Wlb", "Wallbach");
+		TEACHERS.put("Wes", "Wessels");
+		TEACHERS.put("Wnh", "Windhorst");
+		TEACHERS.put("Wit", "Witmeier");
+		TEACHERS.put("Xan", "Xanthopoulos");
+		TEACHERS.put("Zha", "Zhang");
+	}
 	
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -349,6 +415,9 @@ public class MainActivity extends AppCompatActivity
 		{
 			URL url = new URL(myurl);
 			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.155 Safari/537.36");
+			conn.setRequestProperty("Accept-Charset", "ISO-8859-1");
+			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=iso-8859-1");
 			conn.setReadTimeout(10000);
 			conn.setConnectTimeout(15000);
 			conn.setRequestMethod("GET");
@@ -397,7 +466,7 @@ public class MainActivity extends AppCompatActivity
 	public String readIt(InputStream stream) throws IOException, UnsupportedEncodingException 
 	{
 		BufferedReader reader = null;
-		reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));        
+		reader = new BufferedReader(new InputStreamReader(stream, "ISO-8859-1"));        
 		
 		StringBuffer sb = new StringBuffer();
 		
@@ -468,6 +537,9 @@ public class MainActivity extends AppCompatActivity
 				if (sb.length() != 0)
 					sb.append("<br />");
 					
+				for (String s : TEACHERS.keySet())
+					column = column.replace(s, "<i>" + TEACHERS.get(s) + "</i>");
+					
 				if (column.equalsIgnoreCase("f"))
 				{
 					column = "<b>Ausfall</b>";
@@ -480,9 +552,13 @@ public class MainActivity extends AppCompatActivity
 				{
 					column = "Ausflug";
 				}
-				else if (column.contains("f.a.") || column.contains("Aufg."))
+				else if (column.contains("f.a.") || column.contains("Aufg"))
 				{
-					column = "<b>" + column + "</b>";
+					column = "<b>" + column.replace("f.a.", "Ausfall").replace("f.a", "Ausfall").replace("Aufg.", "Aufgaben") + "</b>";
+				}
+				else if (column.contains("siehe"))
+				{
+					column = PreferenceManager.getDefaultSharedPreferences(this).getString(prefix.substring(0, prefix.indexOf('_') + 1) + getPrefixForGrade(column.replace("siehe", "").trim()) + "content", column);
 				}
 				
 				sb.append((i - 1) + ". ");
@@ -496,6 +572,56 @@ public class MainActivity extends AppCompatActivity
 		.commit();
 		
 		return ++rowIndex;
+	}
+	
+	public String getPrefixForGrade(String grade)
+	{
+		if (grade.equals("5a"))
+			return "0_";
+			
+		else if (grade.equals("5b"))
+			return "1_";
+			
+		else if (grade.equals("5c"))
+			return "2_";
+			
+		else if (grade.equals("6a"))
+			return "3_";
+
+		else if (grade.equals("6b"))
+			return "4_";
+
+		else if (grade.equals("6c"))
+			return "5_";
+			
+		else if (grade.equals("7a"))
+			return "6_";
+
+		else if (grade.equals("7b"))
+			return "7_";
+
+		else if (grade.equals("7c"))
+			return "8_";
+			
+		else if (grade.equals("8a"))
+			return "9_";
+
+		else if (grade.equals("8b"))
+			return "10_";
+
+		else if (grade.equals("8c"))
+			return "11_";
+			
+		else if (grade.equals("9a"))
+			return "12_";
+
+		else if (grade.equals("9b"))
+			return "13_";
+
+		else if (grade.equals("9c"))
+			return "14_";
+			
+		return "-1_";
 	}
 	
 	public void addCard(ArrayList<View> result, String content, String title)
@@ -526,7 +652,7 @@ public class MainActivity extends AppCompatActivity
 		text = new TextView(this);
 		text.setPadding((int) dp * 2, (int) (dp * 4F), (int) dp, (int) dp);
 		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-		text.setText(content.length() == 0 ? "Regulärer Untericht" : Html.fromHtml(content));
+		text.setText(content.length() == 0 ? "Regulärer Unterricht" : Html.fromHtml(content));
 
 		card.addView(text);
 
