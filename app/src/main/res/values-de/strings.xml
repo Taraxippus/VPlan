@@ -12,7 +12,7 @@
 
 	<string name="grade">Klasse</string>
 	<string name="grade_summary">Lege fest, für welche Klasse du den Vertretungsplan sehen möchtest</string>
-	<string name="about_app">This app was developed by Jakob Goes</string>
+	<string name="about_app">Diese app wurde von Jakob Goes entwickelt</string>
 	
 	
 	<string-array name="rows">

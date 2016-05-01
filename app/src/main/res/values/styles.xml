@@ -1,28 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="@style/Theme.AppCompat.Light.NoActionBar">
-		<item name="colorPrimary">@color/primary</item>
-		<item name="colorPrimaryDark">@color/primaryDark</item>
-		<item name="colorAccent">@color/accent</item>
-		<item name="android:textColorPrimary">@color/controls</item>
-		<item name="colorControlNormal">@color/controls</item>
-		<item name="popupTheme">@style/Theme.AppCompat.Light</item>
-	</style>
-	<style name="SettingsTheme" parent="@style/Theme.AppCompat.Light">
+    <style name="AppTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
 		<item name="colorPrimary">@color/primary</item>
 		<item name="colorPrimaryDark">@color/primaryDark</item>
 		<item name="colorAccent">@color/accent</item>
 		
-		<item name="actionBarTheme">@style/ActionBarTheme</item>
+		<item name="windowNoTitle">true</item>
+		<item name="windowActionBar">false</item>
 	</style>
-	<style name="ActionBarTheme" parent="@style/Widget.AppCompat.ActionBar.Solid">
-		<item name="android:textColorPrimary">@color/controls</item>
-		<item name="colorControlNormal">@color/controls</item>
-	</style>
-	<style name="AlertDialogTheme" parent="@style/Theme.AppCompat.Light.Dialog.Alert">
-		<item name="android:colorPrimary">@color/primary</item>
-		<item name="android:colorPrimaryDark">@color/primaryDark</item>
-		<item name="android:colorAccent">@color/accent</item>
+	<style name="SettingsTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+		<item name="colorPrimary">@color/primary</item>
+		<item name="colorPrimaryDark">@color/primaryDark</item>
+		<item name="colorAccent">@color/accent</item>
 	</style>
 </resources>
 

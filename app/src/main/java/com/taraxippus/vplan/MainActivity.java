@@ -1,27 +1,47 @@
 package com.taraxippus.vplan;
 
-import android.app.*;
-import android.content.*;
-import android.net.*;
-import android.os.*;
-import android.preference.*;
-import android.support.design.widget.*;
-import android.support.v4.view.*;
-import android.support.v4.widget.*;
-import android.support.v7.app.*;
-import android.support.v7.widget.*;
-import android.text.*;
-import android.util.*;
-import android.view.*;
-import android.widget.*;
-import java.io.*;
-import java.net.*;
-import java.nio.charset.*;
-import java.util.*;
-import java.util.regex.*;
 
-import android.support.v7.app.AlertDialog;
+import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
+import android.util.TypedValue;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+import com.taraxippus.vplan.MainActivity;
+import com.taraxippus.vplan.R;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import android.support.v7.widget.Toolbar;
+import android.app.PendingIntent;
 
 public class MainActivity extends AppCompatActivity 
 {
@@ -34,78 +54,7 @@ public class MainActivity extends AppCompatActivity
 	ViewPager viewPager;
 	TabLayout tabLayout;
 	
-	public static final String URL_TODAY = "http://306.joomla.schule.bremen.de/ServerSync/V-Plan-heute.htm";
-	public static final String URL_TOMORROW = "http://306.joomla.schule.bremen.de/ServerSync/V-Plan-morgen.htm";
-	
-	public static final int[] TABS = new int[] {R.string.today, R.string.tomorrow};
-	
-	public static final HashMap<String, String> TEACHERS = new HashMap<>();
-	
-	static
-	{
-		TEACHERS.put("Asl", "Aslan");
-		TEACHERS.put("Bac", "Bachmann");
-		TEACHERS.put("Bal", "Balster");
-		TEACHERS.put("Bas", "Basedow");
-		TEACHERS.put("Bcm", "Beckmann");
-		TEACHERS.put("Bes", "von Bestenbostel");
-		TEACHERS.put("Brt", "Birth");
-		TEACHERS.put("Böh", "Böhm");
-		TEACHERS.put("Bnt", "Brannath");
-		TEACHERS.put("Gom", "Cano Gómez");
-		TEACHERS.put("DA", "Dall Asta");
-		TEACHERS.put("Dit", "Dittrich");
-		TEACHERS.put("Dry", "Dreyer");
-		TEACHERS.put("Ehl", "Ehlers");
-		TEACHERS.put("Fng", "Fangmann");
-		TEACHERS.put("Far", "Farke");
-		TEACHERS.put("Gev", "Gevers");
-		TEACHERS.put("Gro", "Groothius");
-		TEACHERS.put("Grü", "Grüschow");
-		TEACHERS.put("Hah", "Hahn");
-		TEACHERS.put("Hai", "Haiduck");
-		TEACHERS.put("Han", "Hain");
-		TEACHERS.put("Ham", "Hamann");
-		TEACHERS.put("Haf", "Harf");
-		TEACHERS.put("Hsh", "Heilshorn");
-		TEACHERS.put("Hsm", "Hesemann");
-		TEACHERS.put("Hle", "Hille");
-		TEACHERS.put("Hub", "Hubig");
-		TEACHERS.put("Ktv", "Kalitovics");
-		TEACHERS.put("Kau", "Kaufhold");
-		TEACHERS.put("Kli", "Klingbeil");
-		TEACHERS.put("Kön", "König");
-		TEACHERS.put("Küt", "Küthmann");
-		TEACHERS.put("Lan", "Lange");
-		TEACHERS.put("Leh", "Lehmann");
-		TEACHERS.put("Leo", "Leo");
-		TEACHERS.put("Mmr", "Marxmeier");
-		TEACHERS.put("Mey", "Meyer");
-		TEACHERS.put("Mlr", "Marielle Müller");
-		TEACHERS.put("Mür", "Verena Müller");
-		TEACHERS.put("Orl", "Orlik");
-		TEACHERS.put("Qui", "Quiring");
-		TEACHERS.put("Red", "Rediske");
-		TEACHERS.put("Rem", "Reimer");
-		TEACHERS.put("RK", "Riemann-Kurtz");
-		TEACHERS.put("San", "Sander");
-		TEACHERS.put("Shb", "Scheibe");
-		TEACHERS.put("Sla", "Schlachter");
-		TEACHERS.put("Sct", "Schulte");
-		TEACHERS.put("Shw", "Schwarze");
-		TEACHERS.put("Spi", "Spiecker");
-		TEACHERS.put("Ste", "Steinberg");
-		TEACHERS.put("Tlb", "Thielebein");
-		TEACHERS.put("Tre", "Treichel");
-		TEACHERS.put("Les", "van Lessen");
-		TEACHERS.put("Vig", "Vignais");
-		TEACHERS.put("Wlb", "Wallbach");
-		TEACHERS.put("Wes", "Wessels");
-		TEACHERS.put("Wnh", "Windhorst");
-		TEACHERS.put("Wit", "Witmeier");
-		TEACHERS.put("Xan", "Xanthopoulos");
-		TEACHERS.put("Zha", "Zhang");
-	}
+	DBHelper dbHelper;
 	
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -113,6 +62,8 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 		setSupportActionBar((Toolbar) this.findViewById(R.id.toolbar));
+		
+		dbHelper = new DBHelper(this);
 		
 		final SwipeRefreshLayout.OnRefreshListener refreshListener = new SwipeRefreshLayout.OnRefreshListener()
 		{
@@ -152,7 +103,7 @@ public class MainActivity extends AppCompatActivity
 					if (swipeLayout_today != null && swipeLayout_tomorrow != null)
 					{
 						swipeLayout_today.setRefreshing(true);
-						swipeLayout_tomorrow.setRefreshing(false);
+						swipeLayout_tomorrow.setRefreshing(true);
 						update();
 					}
 					
@@ -180,7 +131,7 @@ public class MainActivity extends AppCompatActivity
 				@Override
 				public CharSequence getPageTitle(int position)
 				{
-					return getString(TABS[position]);
+					return getString(Info.TABS[position]);
 				}
 				
 		});
@@ -190,7 +141,7 @@ public class MainActivity extends AppCompatActivity
 			viewPager.setCurrentItem(1);
 		}
 		
-		tabLayout = (TabLayout) this.findViewById(R.id.sliding_tabs);
+		tabLayout = (TabLayout) this.findViewById(R.id.tab_layout);
 		tabLayout.setupWithViewPager(viewPager);
 	}
 	
@@ -213,7 +164,7 @@ public class MainActivity extends AppCompatActivity
 			
 			case R.id.about:
 				
-				final AlertDialog alertDialog = new AlertDialog.Builder(this, R.style.AlertDialogTheme).create();
+				final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
 				alertDialog.setTitle(R.string.about);
 				alertDialog.setMessage(getString(R.string.about_app));
 				alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new AlertDialog.OnClickListener()
@@ -233,13 +184,43 @@ public class MainActivity extends AppCompatActivity
 				
 				Notification.Builder notification = new Notification.Builder(this);
 				
-				notification.setContentTitle("Test");
-				notification.setContentText("test");
+				StringBuilder text = new StringBuilder();
+				
+				ArrayList<String> grades = dbHelper.getGrades(2);
+				ArrayList<String[]> periods;
+		
+				String ROW = PreferenceManager.getDefaultSharedPreferences(this).getString("row", "");
+
+				for (String grade : grades)
+				{
+					if (ROW.isEmpty() || ROW.equalsIgnoreCase(grade))
+					{
+						periods = dbHelper.getEntries(grade, 2);
+
+						if (periods.isEmpty())
+						{
+							text.append(getString(R.string.regular));
+						}
+						else
+						{
+							for (String[] period : periods)
+							{
+								if (text.length() > 0)
+									text.append("<br />");
+									
+								text.append(period[0]).append(" ").append(period[1].replace("\\", " <br /> "));
+							}
+						}
+					}
+				}
+				notification.setContentTitle("VPlan " + getString(R.string.today) + " " + ROW);
+				notification.setContentText(Html.fromHtml(text.toString()));
+				notification.setStyle(new Notification.BigTextStyle().bigText(Html.fromHtml(text.toString())));
 				notification.setColor(getResources().getColor(R.color.primary));
 				notification.setSmallIcon(R.drawable.ic_launcher);
+				notification.setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0));
 				
 				nm.notify(R.string.notification_id, notification.build());
-				
 				
 				return true;
 				
@@ -267,55 +248,16 @@ public class MainActivity extends AppCompatActivity
 			Toast.makeText(this, R.string.connection_error, Toast.LENGTH_SHORT).show();
 			
 			layout_today.removeAllViews();
+			getLayoutInflater().inflate(R.layout.card_message, layout_today, true);
 			
-			CardView card = new CardView(this);
-			card.setClickable(true);
-
-			TypedValue outValue = new TypedValue();
-			getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-
-			card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
-
-			float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-
-			card.setCardElevation(dp / 4F);
-			card.setUseCompatPadding(true);
-			card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-
-			TextView text = new TextView(this);
-			text.setTextColor(getResources().getColor(R.color.accent));
-			text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-			text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-			text.setText(Html.fromHtml("<b>" + getString(R.string.connection_error) + "</b>"));
-			text.setGravity(Gravity.CENTER);
-
-			card.addView(text);
-			layout_today.addView(card);
-
-			ArrayList<View> old = updateCards("today_");
+			ArrayList<View> old = updateCards(true);
 			for (View v : old)
 				layout_today.addView(v);
 
 			layout_tomorrow.removeAllViews();
-				
-			card = new CardView(this);
-			card.setClickable(true);
-			card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
-			card.setCardElevation(dp / 4F);
-			card.setUseCompatPadding(true);
-			card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
+			getLayoutInflater().inflate(R.layout.card_message, layout_tomorrow, true);
 
-			text = new TextView(this);
-			text.setTextColor(getResources().getColor(R.color.accent));
-			text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-			text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-			text.setText(Html.fromHtml("<b>" + getString(R.string.connection_error) + "</b>"));
-			text.setGravity(Gravity.CENTER);
-
-			card.addView(text);
-			layout_tomorrow.addView(card);
-
-			old = updateCards("tomorrow_");
+			old = updateCards(false);
 			for (View v : old)
 				layout_tomorrow.addView(v);
 	
@@ -333,8 +275,8 @@ public class MainActivity extends AppCompatActivity
 				{
 					try
 					{
-						updateInfo(urls[0], "today_");
-						return updateCards("today_");
+						updateInfo(urls[0], true);
+						return updateCards(true);
 					}
 					catch (Exception e)
 					{
@@ -355,13 +297,11 @@ public class MainActivity extends AppCompatActivity
 					layout_today.removeAllViews();
 					
 					for (View v : result)
-					{
 						layout_today.addView(v);
-					}
 				
 					swipeLayout_today.setRefreshing(false);
 				}
-			}.execute(URL_TODAY);
+			}.execute(Info.URL_TODAY);
 			
 			new AsyncTask<String, Void, ArrayList<View>>()
 			{
@@ -370,8 +310,8 @@ public class MainActivity extends AppCompatActivity
 				{
 					try
 					{
-						updateInfo(urls[0], "tomorrow_");
-						return updateCards("tomorrow_");
+						updateInfo(urls[0], false);
+						return updateCards(false);
 					}
 					catch (Exception e)
 					{
@@ -392,13 +332,11 @@ public class MainActivity extends AppCompatActivity
 					layout_tomorrow.removeAllViews();
 
 					for (View v : result)
-					{
 						layout_tomorrow.addView(v);
-					}
 
 					swipeLayout_tomorrow.setRefreshing(false);
 				}
-			}.execute(URL_TOMORROW);
+			}.execute(Info.URL_TOMORROW);
 		}
 		catch (Exception e)
 		{
@@ -406,15 +344,13 @@ public class MainActivity extends AppCompatActivity
 		}
 	}
 	
-	private void updateInfo(String myurl, String prefix) throws IOException
+	private void updateInfo(String url, boolean today) throws IOException
 	{
+		BufferedReader reader = null;
 		
-		InputStream is = null;
-
 		try 
 		{
-			URL url = new URL(myurl);
-			HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+			HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
 			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.155 Safari/537.36");
 			conn.setRequestProperty("Accept-Charset", "ISO-8859-1");
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=iso-8859-1");
@@ -424,8 +360,18 @@ public class MainActivity extends AppCompatActivity
 			conn.setDoInput(true);
 			conn.connect();
 			
-			is = conn.getInputStream();
-			String contentAsString = readIt(is);
+			reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "ISO-8859-1"));        
+
+			StringBuffer sb = new StringBuffer();
+			String line;
+
+			while((line = reader.readLine()) != null)
+				sb.append(line);
+
+			String contentAsString = sb.toString();
+			
+			dbHelper.delete(today ? 0 : 1);
+			dbHelper.delete(today ? 2 : 3);
 			
 			Matcher m = Pattern.compile("<tr").matcher(contentAsString);
 			
@@ -434,9 +380,7 @@ public class MainActivity extends AppCompatActivity
 			
 			while (m.find())
 			{
-				i++;
-				
-				if (i == 1)
+				if (i == 0)
 				{
 					String row = contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start()));
 
@@ -444,47 +388,25 @@ public class MainActivity extends AppCompatActivity
 					m1.find();
 					
 					int index1 = row.indexOf(">", m1.start());
-					String column = row.substring(index1 + 1, row.indexOf("<", index1));
+					dbHelper.add("title", 0, row.substring(index1 + 1, row.indexOf("<", index1)), today ? 0 : 1);
 					
-					PreferenceManager.getDefaultSharedPreferences(this).edit().putString(prefix + "title", column).commit();
 				}
-				if (i > 2)
-					index = parseColumn(contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), index, prefix + index + "_");
+				if (i > 1)
+					index = parseColumn(contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), index, today);
+					
+				i++;
 			}
-			
-			PreferenceManager.getDefaultSharedPreferences(this).edit().putInt(prefix + "count", index).commit();
 		}
 		finally
 		{
-			if (is != null)
-			{
-				is.close();
-			} 
+			if (reader != null)
+				reader.close();
 		}
 	}
-	
-	public String readIt(InputStream stream) throws IOException, UnsupportedEncodingException 
-	{
-		BufferedReader reader = null;
-		reader = new BufferedReader(new InputStreamReader(stream, "ISO-8859-1"));        
-		
-		StringBuffer sb = new StringBuffer();
-		
-		String line;
-		
-		while((line = reader.readLine()) != null)
-		{
-			sb.append(line).append("\n");
-		}
-		
-		return new String(sb);
-	}
-	
-	public ArrayList<View> updateCards(String prefix)
+
+	public ArrayList<View> updateCards(boolean today)
 	{
 		final ArrayList<View> result = new ArrayList<>();
-		
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		
 		float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
 
@@ -492,170 +414,121 @@ public class MainActivity extends AppCompatActivity
 		text.setTextColor(getResources().getColor(R.color.accent));
 		text.setPadding((int) dp / 2, (int) dp, (int) dp, (int) dp);
 		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-		text.setText(Html.fromHtml("<b>" + preferences.getString(prefix + "title", "...") + "</b>"));
+		text.setText(Html.fromHtml("<b>" + dbHelper.getContent("title", 0, today ? 0 : 1) + "</b>"));
 
 		result.add(text);
 		
-		int cards = preferences.getInt(prefix + "count", 0);
+		ArrayList<String> grades = dbHelper.getGrades(today ? 2 : 3);
+		ArrayList<String[]> periods;
+		String[] entries;
+		StringBuilder content;
 		
-		for (int i = 0; i < cards; ++i)
-			addCard(result, preferences.getString(prefix + i +  "_content", ""), preferences.getString(prefix + i +  "_title", ""));
+		String ROW = PreferenceManager.getDefaultSharedPreferences(this).getString("row", "");
 		
+		View card, text_content;
+		LinearLayout layout_content;
+		
+		for (String grade : grades)
+		{
+			if (ROW.isEmpty() || ROW.equalsIgnoreCase(grade))
+			{
+				card = getLayoutInflater().inflate(R.layout.card_content, layout_today, false);
+				((TextView) card.findViewById(R.id.text_title)).setText(grade);
+				layout_content = (LinearLayout) card.findViewById(R.id.layout_content);
+				
+				periods = dbHelper.getEntries(grade, today ? 2 : 3);
+
+				if (periods.isEmpty())
+				{
+					text_content = getLayoutInflater().inflate(R.layout.row_content, layout_content, false);
+
+					((TextView) text_content.findViewById(R.id.text_content)).setText(getString(R.string.regular));
+					layout_content.addView(text_content);
+				}
+				else
+				{
+					for (String[] period : periods)
+					{
+						content = new StringBuilder();
+							
+						entries = period[1].split("\\\\");
+						for (int i = 0; i < entries.length; ++i)
+						{
+							if (entries[i].contains("siehe"))
+								entries[i] = dbHelper.getContent(entries[i].substring(6, entries[i].length()), Integer.parseInt(period[0].substring(0, period[0].length() - 1)), today ? 2 : 3);
+							
+							if (i != 0)
+								content.append("<br />");
+								
+							content.append(entries[i]);
+						}
+						
+						text_content = getLayoutInflater().inflate(R.layout.row_content, layout_content, false);
+
+						((TextView) text_content.findViewById(R.id.text_number)).setText(period[0]);
+						((TextView) text_content.findViewById(R.id.text_content)).setText(Html.fromHtml(content.toString()));
+						layout_content.addView(text_content);
+					}
+				}
+				result.add(card);
+			}
+		}
+			
 		return result;
 	}
 	
-	public int parseColumn(String row, int rowIndex, String prefix)
+	public int parseColumn(String row, int rowIndex, boolean today)
 	{
 		Matcher m = Pattern.compile("<td").matcher(row);
 
 		int index;
 		int i = 0;
 		String column;
-		
-		String ROW = PreferenceManager.getDefaultSharedPreferences(this).getString("row", "");
-		
-		StringBuilder sb = new StringBuilder();
-		String title = "";
+		String grade = "5a";
 		
 		while (m.find())
 		{
-			++i;
 			index = row.indexOf(">", m.start());
-			column = row.substring(index + 1, row.indexOf("<", index)).replace("&nbsp;", "").replace("\n", "").replace("  ", " ");
+			column = row.substring(index + 1, row.indexOf("<", index)).replace("&nbsp;", "").replace("  ", " ");
 			
-			if (i == 1)
+			if (i == 0)
 			{
-				if (column.isEmpty() || !ROW.isEmpty() && !column.equalsIgnoreCase(ROW) && !column.contains(ROW))
-				{
-					return rowIndex;
-				}
-				
-				title = column;
+				grade = column;
 			}
-			else if (i != 10 && !column.isEmpty())
+			else if (i != 9 && !column.isEmpty())
 			{
-				if (sb.length() != 0)
-					sb.append("<br />");
-					
-				for (String s : TEACHERS.keySet())
-					column = column.replace(s, "<i>" + TEACHERS.get(s) + "</i>");
-					
-				if (column.equalsIgnoreCase("f"))
+				for (String entry : column.split("/"))
 				{
-					column = "<b>Ausfall</b>";
+					for (String s : Info.TEACHERS.keySet())
+						entry = entry.replaceAll("\\b" + s + "\\b", "<i>" + Info.TEACHERS.get(s) + "</i>");
+
+					if (entry.equalsIgnoreCase("f"))
+					{
+						entry = "<i>" + getString(R.string.ausfall) + "</i>";
+					}
+					else if (entry.equalsIgnoreCase("MP"))
+					{
+						entry = "<i>" + getString(R.string.mittagspause) + "</i>";
+					}
+					else if (entry.equalsIgnoreCase("XXX"))
+					{
+						entry = "<i>" + getString(R.string.ausflug) + "</i>";
+					}
+					else if (entry.contains("f.a.") || entry.contains("Aufg"))
+					{
+						entry = "<i>" + entry.replace("f.a.", getString(R.string.ausfall)).replace("f.a", getString(R.string.ausfall)).replace("Aufg.", "Aufgaben").replace("Aufgaben", getString(R.string.aufgaben)) + "</i>";
+					}
+					else if (entry.equalsIgnoreCase("verl") || entry.equalsIgnoreCase("verl."))
+					{
+						entry = "<i>" + getString(R.string.verlegt) + "</i>";
+					}
+
+					dbHelper.add(grade, i, entry.trim(), today ? 2 : 3);
 				}
-				else if (column.equalsIgnoreCase("MP"))
-				{
-					column = "<b>Mittagspause</b>";
-				}
-				else if (column.equalsIgnoreCase("XXX"))
-				{
-					column = "Ausflug";
-				}
-				else if (column.contains("f.a.") || column.contains("Aufg"))
-				{
-					column = "<b>" + column.replace("f.a.", "Ausfall").replace("f.a", "Ausfall").replace("Aufg.", "Aufgaben") + "</b>";
-				}
-				else if (column.contains("siehe"))
-				{
-					column = PreferenceManager.getDefaultSharedPreferences(this).getString(prefix.substring(0, prefix.indexOf('_') + 1) + getPrefixForGrade(column.replace("siehe", "").trim()) + "content", column);
-				}
-				
-				sb.append((i - 1) + ". ");
-				sb.append(column);
 			}
+			
+			++i;
 		}
-		
-		PreferenceManager.getDefaultSharedPreferences(this).edit()
-		.putString(prefix + "title", title)
-		.putString(prefix + "content", sb.toString())
-		.commit();
-		
 		return ++rowIndex;
-	}
-	
-	public String getPrefixForGrade(String grade)
-	{
-		if (grade.equals("5a"))
-			return "0_";
-			
-		else if (grade.equals("5b"))
-			return "1_";
-			
-		else if (grade.equals("5c"))
-			return "2_";
-			
-		else if (grade.equals("6a"))
-			return "3_";
-
-		else if (grade.equals("6b"))
-			return "4_";
-
-		else if (grade.equals("6c"))
-			return "5_";
-			
-		else if (grade.equals("7a"))
-			return "6_";
-
-		else if (grade.equals("7b"))
-			return "7_";
-
-		else if (grade.equals("7c"))
-			return "8_";
-			
-		else if (grade.equals("8a"))
-			return "9_";
-
-		else if (grade.equals("8b"))
-			return "10_";
-
-		else if (grade.equals("8c"))
-			return "11_";
-			
-		else if (grade.equals("9a"))
-			return "12_";
-
-		else if (grade.equals("9b"))
-			return "13_";
-
-		else if (grade.equals("9c"))
-			return "14_";
-			
-		return "-1_";
-	}
-	
-	public void addCard(ArrayList<View> result, String content, String title)
-	{
-		CardView card = new CardView(this);
-
-		card.setClickable(true);
-
-		TypedValue outValue = new TypedValue();
-		getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-
-		card.setForeground(getResources().getDrawable(outValue.resourceId, getTheme()));
-
-		float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
-
-		card.setCardElevation(dp / 4F);
-		card.setUseCompatPadding(true);
-		card.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-		
-		TextView text = new TextView(this);
-		text.setTextColor(getResources().getColor(R.color.accent));
-		text.setPadding((int) dp, (int) dp, (int) dp, (int) dp);
-		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-		text.setText(Html.fromHtml("<b>" + title + "</b>"));
-
-		card.addView(text);
-		
-		text = new TextView(this);
-		text.setPadding((int) dp * 2, (int) (dp * 4F), (int) dp, (int) dp);
-		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 18);
-		text.setText(content.length() == 0 ? "Regulärer Unterricht" : Html.fromHtml(content));
-
-		card.addView(text);
-
-		result.add(card);
 	}
 }

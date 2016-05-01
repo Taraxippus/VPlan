@@ -1,0 +1,34 @@
+<android.support.v7.widget.CardView
+	xmlns:card_view="http://schemas.android.com/apk/res-auto"
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content"
+	card_view:cardCornerRadius="4dp"
+	card_view:cardElevation="2dp"
+	card_view:cardUseCompatPadding="true"
+	android:clickable="true"
+	android:foreground="?attr/selectableItemBackground"
+	android:padding="8dp">
+
+	<TextView
+		android:id="@+id/text_title"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:padding="8dp"
+		android:textColor="@color/accent"
+		android:textAppearance="?android:attr/textAppearanceMedium"
+	/>
+
+	<LinearLayout
+		android:id="@+id/layout_content"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:paddingTop="32dp"
+		android:paddingLeft="8dp"
+		android:paddingRight="8dp"
+		android:paddingBottom="8dp"
+		android:orientation="vertical">
+		
+	</LinearLayout>
+	
+</android.support.v7.widget.CardView>

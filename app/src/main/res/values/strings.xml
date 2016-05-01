@@ -9,6 +9,12 @@
 	<string name="today">TODAY</string>
 	<string name="tomorrow">TOMORROW</string>
 	<string name="connection_error">No internet connection</string>
+	<string name="regular">Regulärer Unterricht</string>
+	<string name="ausfall">Ausfall</string>
+	<string name="mittagspause">Mittagspause</string>
+	<string name="aufgaben">Aufgaben</string>
+	<string name="ausflug">Ausflug</string>
+	<string name="verlegt">Verlegt</string>
 	
 	<string name="notification">Enable notifications</string>
 	<string name="notification_summary">Enable if you want to get a notification with the latest updates each morning</string>
@@ -16,7 +22,7 @@
 	<string name="grade">Grade</string>
 	<string name="grade_summary">Change grade</string>
 	
-	<string name="about_app"></string>
+	<string name="about_app">This app was developed by Jakob Goes</string>
 	
 	<string-array name="rows">
         <item>Everything</item>
