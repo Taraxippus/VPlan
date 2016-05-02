@@ -119,7 +119,8 @@ public class DBHelper extends SQLiteOpenHelper
 		ContentValues contentValues = new ContentValues();
 		if (exists(grade, period, type))
 		{
-			contentValues.put("content", getContent(grade, period, type) + "\\" + text);
+			String old = getContent(grade, period, type);
+			contentValues.put("content", old.isEmpty() ? text : old + "\\" + text);
 			db.update("vplan", contentValues, "grade = ? AND period = ? AND type = ?", new String[] {grade, "" + period, "" + type});
 		}
 		else

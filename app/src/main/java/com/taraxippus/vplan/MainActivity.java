@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity
 						layout_today = (LinearLayout) layout.findViewById(R.id.layout_cards);
 						
 						swipeLayout_today = (SwipeRefreshLayout)layout.findViewById(R.id.layout_swipe);
-						swipeLayout_today.setColorSchemeResources(R.color.accent);
+						swipeLayout_today.setColorSchemeResources(R.color.primary, R.color.accent);
 						swipeLayout_today.setOnRefreshListener(refreshListener);
 					}
 					else
@@ -96,16 +96,12 @@ public class MainActivity extends AppCompatActivity
 						layout_tomorrow = (LinearLayout) layout.findViewById(R.id.layout_cards);
 						
 						swipeLayout_tomorrow = (SwipeRefreshLayout)layout.findViewById(R.id.layout_swipe);
-						swipeLayout_tomorrow.setColorSchemeResources(R.color.accent);
+						swipeLayout_tomorrow.setColorSchemeResources(R.color.primary, R.color.accent);
 						swipeLayout_tomorrow.setOnRefreshListener(refreshListener);
 					}
 					
 					if (swipeLayout_today != null && swipeLayout_tomorrow != null)
-					{
-						swipeLayout_today.setRefreshing(true);
-						swipeLayout_tomorrow.setRefreshing(true);
 						update();
-					}
 					
 					return layout;
 				}
@@ -205,6 +201,9 @@ public class MainActivity extends AppCompatActivity
 						{
 							for (String[] period : periods)
 							{
+								if (period[1].isEmpty())
+									continue;
+									
 								if (text.length() > 0)
 									text.append("<br />");
 									
@@ -229,6 +228,19 @@ public class MainActivity extends AppCompatActivity
 				return false;
 		}
 	}
+
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+		
+		if (swipeLayout_today != null && swipeLayout_tomorrow != null && System.currentTimeMillis() - PreferenceManager.getDefaultSharedPreferences(this).getLong("lastUpdate", 0) > 1000 * 60 * 5)
+		{
+			PreferenceManager.getDefaultSharedPreferences(this).edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
+			update();
+		}
+	}
+	
 	
 	public boolean hasInternetConnection()
 	{
@@ -376,7 +388,6 @@ public class MainActivity extends AppCompatActivity
 			Matcher m = Pattern.compile("<tr").matcher(contentAsString);
 			
 			int i = 0;
-			int index = 0;
 			
 			while (m.find())
 			{
@@ -392,7 +403,7 @@ public class MainActivity extends AppCompatActivity
 					
 				}
 				if (i > 1)
-					index = parseColumn(contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), index, today);
+					parseColumn(contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), today);
 					
 				i++;
 			}
@@ -438,7 +449,7 @@ public class MainActivity extends AppCompatActivity
 				
 				periods = dbHelper.getEntries(grade, today ? 2 : 3);
 
-				if (periods.isEmpty())
+				if (periods.size() == 1 && periods.get(0)[1].isEmpty())
 				{
 					text_content = getLayoutInflater().inflate(R.layout.row_content, layout_content, false);
 
@@ -449,6 +460,9 @@ public class MainActivity extends AppCompatActivity
 				{
 					for (String[] period : periods)
 					{
+						if (period[1].isEmpty())
+							continue;
+							
 						content = new StringBuilder();
 							
 						entries = period[1].split("\\\\");
@@ -477,14 +491,15 @@ public class MainActivity extends AppCompatActivity
 		return result;
 	}
 	
-	public int parseColumn(String row, int rowIndex, boolean today)
+	public void parseColumn(String row, boolean today)
 	{
-		Matcher m = Pattern.compile("<td").matcher(row);
+		Matcher m = Pattern.compile("<td").matcher(row), m1;
 
 		int index;
 		int i = 0;
 		String column;
 		String grade = "5a";
+		ArrayList<Integer> periods = new ArrayList<Integer>();
 		
 		while (m.find())
 		{
@@ -494,9 +509,28 @@ public class MainActivity extends AppCompatActivity
 			if (i == 0)
 			{
 				grade = column;
+				if (grade.isEmpty())
+					return;
 			}
 			else if (i != 9 && !column.isEmpty())
 			{
+				periods.clear();
+				
+				if (column.matches("\\d+\\..*"))
+				{
+					m1 = Pattern.compile("(\\d+)\\.").matcher(column);
+					
+					while (m1.find())
+					{
+						periods.add(Integer.parseInt(m1.group(1)));
+						index = m1.end(1);
+					}
+						
+					column = column.substring(index + 1);
+				}
+				else
+					periods.add(i);
+				
 				for (String entry : column.split("/"))
 				{
 					for (String s : Info.TEACHERS.keySet())
@@ -522,13 +556,15 @@ public class MainActivity extends AppCompatActivity
 					{
 						entry = "<i>" + getString(R.string.verlegt) + "</i>";
 					}
-
-					dbHelper.add(grade, i, entry.trim(), today ? 2 : 3);
+					
+					for (Integer period : periods)
+						dbHelper.add(grade, period, entry.trim(), today ? 2 : 3);
 				}
 			}
 			
 			++i;
 		}
-		return ++rowIndex;
+		
+		dbHelper.add(grade, 0, "", today ? 2 : 3);
 	}
 }
