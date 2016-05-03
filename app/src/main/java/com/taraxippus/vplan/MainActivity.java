@@ -154,8 +154,8 @@ public class MainActivity extends AppCompatActivity
 		switch (item.getItemId())
 		{
 			case R.id.settings:
-				Intent intent = new Intent().setClass(this, SettingsActivity.class);
-				this.startActivityForResult( intent, 0 );
+				Intent intent = new Intent(this, SettingsActivity.class);
+				this.startActivityForResult(intent, 0);
 				return true;
 			
 			case R.id.about:
