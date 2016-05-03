@@ -7,9 +7,12 @@
 	<string name="tomorrow">MORGEN</string>
 	<string name="connection_error">Keine Internetverbindung</string>
 	
+	<string name="category_notification">Benachrichtungen</string>
+	
 	<string name="notification">Benachrichtungen</string>
-	<string name="notification_summary">Lege fest, ob du jeden morgen über den Vertretungsplan benachrichtigt werden möchtest</string>
-
+	<string name="notification_summary">Lege fest, ob du jeden tag über den Vertretungsplan benachrichtigt werden möchtest</string>
+	<string name="notification_time">Uhrzeit</string>
+	
 	<string name="grade">Klasse</string>
 	<string name="grade_summary">Lege fest, für welche Klasse du den Vertretungsplan sehen möchtest</string>
 	<string name="about_app">Diese app wurde von Jakob Goes entwickelt</string>

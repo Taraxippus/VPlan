@@ -7,6 +7,11 @@
    	    android:summary="@string/notification_summary"
         android:defaultValue="true" />
 	
+	<com.taraxippus.vplan.TimePreference
+        android:key="notification_time"
+        android:title="@string/notification_time"
+   	    android:dependency="notification" />
+	
     <ListPreference
         android:key="row"
         android:title="@string/grade"
