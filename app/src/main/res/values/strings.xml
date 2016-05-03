@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+	<string name="empty"></string>
+	
     <string name="app_name">VPlan</string>
 	<string name="settings">Settings</string>
 	<string name="about">About this app</string>
@@ -16,8 +18,12 @@
 	<string name="ausflug">Ausflug</string>
 	<string name="verlegt">Verlegt</string>
 	
+	<string name="category_notification">Notification</string>
+	<string name="category_vplan">VPlan</string>
+	
 	<string name="notification">Enable notifications</string>
-	<string name="notification_summary">Enable if you want to get a notification with the latest updates each morning</string>
+	<string name="notification_summary">Enable if you want to get a notification with the latest updates each day</string>
+	<string name="notification_time">Change time</string>
 	
 	<string name="grade">Grade</string>
 	<string name="grade_summary">Change grade</string>

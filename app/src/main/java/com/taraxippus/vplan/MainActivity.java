@@ -42,6 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import android.support.v7.widget.Toolbar;
 import android.app.PendingIntent;
+import android.app.AlarmManager;
 
 public class MainActivity extends AppCompatActivity 
 {
@@ -64,6 +65,19 @@ public class MainActivity extends AppCompatActivity
 		setSupportActionBar((Toolbar) this.findViewById(R.id.toolbar));
 		
 		dbHelper = new DBHelper(this);
+		
+		if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("notification", true))
+		{
+			Calendar calendar = Calendar.getInstance();
+			calendar.set(Calendar.HOUR_OF_DAY, 7);
+			System.out.println(calendar.getTimeInMillis());
+			calendar.setTimeInMillis(PreferenceManager.getDefaultSharedPreferences(this).getLong("notification_time", System.currentTimeMillis() + 1000));
+			((AlarmManager) getSystemService(Context.ALARM_SERVICE)).setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, PendingIntent.getBroadcast(this, 0, new Intent(this, AlarmReceiver.class), 0));
+		}
+		else
+		{
+			((AlarmManager) getSystemService(Context.ALARM_SERVICE)).cancel(PendingIntent.getBroadcast(this, 0, new Intent(this, AlarmReceiver.class), 0));
+		}
 		
 		final SwipeRefreshLayout.OnRefreshListener refreshListener = new SwipeRefreshLayout.OnRefreshListener()
 		{
@@ -167,7 +181,7 @@ public class MainActivity extends AppCompatActivity
 				final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
 				alertDialog.setTitle(R.string.about);
 				alertDialog.setMessage(getString(R.string.about_app));
-				alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK", new AlertDialog.OnClickListener()
+				alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, getString(android.R.string.ok), new AlertDialog.OnClickListener()
 				{
 						@Override
 						public void onClick(DialogInterface p1, int p2)
