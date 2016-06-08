@@ -2,15 +2,19 @@
 <resources>
 	<string name="settings">Einstellungen</string>
 	<string name="about">Über diese app</string>
-
+	<string name="cafeteria">Speiseplan</string>
+	
 	<string name="today">HEUTE</string>
 	<string name="tomorrow">MORGEN</string>
 	<string name="connection_error">Keine Internetverbindung</string>
+	<string name="failed_to_update">Update des Vertretungsplan ist fehlgeschlagen. </string>
+	<string name="last_modified">Zuletzt verändert</string>
+	<string name="last_updated">Zuletzt aktualisiert</string>
 	
 	<string name="category_notification">Benachrichtungen</string>
 	
 	<string name="notification">Benachrichtungen</string>
-	<string name="notification_summary">Lege fest, ob du jeden tag über den Vertretungsplan benachrichtigt werden möchtest</string>
+	<string name="notification_summary">Lege fest, ob du jeden Tag über den Vertretungsplan benachrichtigt werden möchtest</string>
 	<string name="notification_time">Uhrzeit</string>
 	
 	<string name="grade">Klasse</string>

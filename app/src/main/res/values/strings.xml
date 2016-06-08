@@ -2,15 +2,20 @@
 <resources>
 
 	<string name="empty"></string>
-	
     <string name="app_name">VPlan</string>
+	<string name="notification_id">com.taraxippus.vplan</string>
+	
 	<string name="settings">Settings</string>
 	<string name="about">About this app</string>
-	<string name="notification_id">com.taraxippus.vplan</string>
+	<string name="cafeteria">Cafeteria menu</string>
 	
 	<string name="today">TODAY</string>
 	<string name="tomorrow">TOMORROW</string>
 	<string name="connection_error">No internet connection</string>
+	<string name="failed_to_update">Failed to update. Try again manually.</string>
+	<string name="last_modified">Last modified</string>
+	<string name="last_updated">Last updated</string>
+	
 	<string name="regular">Regulärer Unterricht</string>
 	<string name="ausfall">Ausfall</string>
 	<string name="mittagspause">Mittagspause</string>

@@ -3,12 +3,11 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content"
-	card_view:cardUseCompatPadding="true"
 	card_view:cardCornerRadius="2dp"
-	card_view:cardElevation="4dp"
-	card_view:cardBackgroundColor="@color/primary"
+	card_view:cardElevation="2dp"
 	android:foreground="?attr/selectableItemBackground"
-	android:clickable="true">
+	android:clickable="true"
+	android:onClick="update" >
 	
 	<TextView
 		android:id="@+id/text_message"
@@ -16,9 +15,7 @@
 		android:layout_height="wrap_content"
 		android:gravity="center"
 		android:padding="8dp"
-		android:textStyle="bold"
 		android:text="@string/connection_error"
-		android:textColor="@color/controls"
 		android:textAppearance="?android:attr/textAppearanceMedium"
 		/>
 		

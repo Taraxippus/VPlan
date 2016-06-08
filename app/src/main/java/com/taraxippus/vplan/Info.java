@@ -1,14 +1,20 @@
 package com.taraxippus.vplan;
 
+import android.content.Context;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import android.text.format.DateFormat;
 
 public abstract class Info
 {
 	public static final String URL_TODAY = "http://306.joomla.schule.bremen.de/ServerSync/V-Plan-heute.htm";
 	public static final String URL_TOMORROW = "http://306.joomla.schule.bremen.de/ServerSync/V-Plan-morgen.htm";
-
-	public static final int[] TABS = new int[] {R.string.today, R.string.tomorrow};
+	public static final String URL_MENU = "https://docs.google.com/document/d/1oC8Qe8_MFu8HP412nfiMuC_53F2rTXn2TJRsMpZg0F4/edit?usp=sharing";
 	
+	public static final java.text.DateFormat htmlDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+	
+	public static final int[] TABS = new int[] {R.string.today, R.string.tomorrow};
 	
 	public static final HashMap<String, String> TEACHERS = new HashMap<>();
 
@@ -76,5 +82,13 @@ public abstract class Info
 		TEACHERS.put("Wit", "Witmeier");
 		TEACHERS.put("Xan", "Xanthopoulos");
 		TEACHERS.put("Zha", "Zhang");
+	}
+	
+	public static String formatDate(Context context, Date date)
+	{
+		if (date.getDay() != new Date().getDay())
+			return DateFormat.getDateFormat(context).format(date);
+			
+		return DateFormat.getTimeFormat(context).format(date);
 	}
 }

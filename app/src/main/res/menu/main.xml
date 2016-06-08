@@ -8,6 +8,9 @@
 		android:title="@string/settings"
 		app:showAsAction="ifRoom"/>
 		
+	<item android:id="@+id/cafeteria"
+		android:title="@string/cafeteria" />
+	
 	<item android:id="@+id/about"
 		android:title="@string/about" />
 		

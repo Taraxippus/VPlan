@@ -1,15 +1,19 @@
 package com.taraxippus.vplan;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.TypedArray;
 import android.preference.DialogPreference;
+import android.text.format.DateFormat;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.TimePicker;
+import com.taraxippus.vplan.AlarmReceiver;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import android.text.format.DateFormat;
 
 public class TimePreference extends DialogPreference
  {
@@ -60,12 +64,17 @@ public class TimePreference extends DialogPreference
 		{
             calendar.set(Calendar.HOUR_OF_DAY, picker.getCurrentHour());
             calendar.set(Calendar.MINUTE, picker.getCurrentMinute());
-
+			if (calendar.getTimeInMillis() < Calendar.getInstance().getTimeInMillis())
+				calendar.add(Calendar.DATE, 1);
+			
             setSummary(getSummary());
+			
             if (callChangeListener(calendar.getTimeInMillis())) 
 			{
                 persistLong(calendar.getTimeInMillis());
                 notifyChanged();
+				
+				((AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE)).setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, PendingIntent.getBroadcast(getContext(), 0, new Intent(getContext(), AlarmReceiver.class), PendingIntent.FLAG_UPDATE_CURRENT));
             }
         }
     }
@@ -94,7 +103,8 @@ public class TimePreference extends DialogPreference
 		{
             if (defaultValue == null) 
 			{
-                calendar.setTimeInMillis(System.currentTimeMillis());
+                calendar.set(Calendar.HOUR_OF_DAY, 7);
+				calendar.set(Calendar.MINUTE, 0);
             }
 			else 
 			{

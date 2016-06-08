@@ -1,15 +1,15 @@
 package com.taraxippus.vplan;
 
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -18,6 +18,7 @@ import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -36,13 +37,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import android.support.v7.widget.Toolbar;
-import android.app.PendingIntent;
-import android.app.AlarmManager;
+import android.text.format.DateFormat;
+import android.os.SystemClock;
+import android.graphics.Typeface;
+import java.text.ParseException;
 
 public class MainActivity extends AppCompatActivity 
 {
@@ -66,17 +74,16 @@ public class MainActivity extends AppCompatActivity
 		
 		dbHelper = new DBHelper(this);
 		
-		if (PreferenceManager.getDefaultSharedPreferences(this).getBoolean("notification", true))
+		if (PreferenceManager.getDefaultSharedPreferences(this).getLong("notification_time", 0) == 0)
 		{
 			Calendar calendar = Calendar.getInstance();
 			calendar.set(Calendar.HOUR_OF_DAY, 7);
-			System.out.println(calendar.getTimeInMillis());
-			calendar.setTimeInMillis(PreferenceManager.getDefaultSharedPreferences(this).getLong("notification_time", System.currentTimeMillis() + 1000));
-			((AlarmManager) getSystemService(Context.ALARM_SERVICE)).setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, PendingIntent.getBroadcast(this, 0, new Intent(this, AlarmReceiver.class), 0));
-		}
-		else
-		{
-			((AlarmManager) getSystemService(Context.ALARM_SERVICE)).cancel(PendingIntent.getBroadcast(this, 0, new Intent(this, AlarmReceiver.class), 0));
+			calendar.set(Calendar.MINUTE, 0);
+			
+			if (calendar.getTimeInMillis() < Calendar.getInstance().getTimeInMillis())
+				calendar.add(Calendar.DATE, 1);
+			
+			((AlarmManager) getSystemService(Context.ALARM_SERVICE)).setInexactRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, PendingIntent.getBroadcast(this, 0, new Intent(this, AlarmReceiver.class), PendingIntent.FLAG_UPDATE_CURRENT));
 		}
 		
 		final SwipeRefreshLayout.OnRefreshListener refreshListener = new SwipeRefreshLayout.OnRefreshListener()
@@ -84,7 +91,7 @@ public class MainActivity extends AppCompatActivity
 			@Override
 			public void onRefresh()
 			{
-				update();
+				update(true);
 			}
 		};
 		
@@ -115,7 +122,7 @@ public class MainActivity extends AppCompatActivity
 					}
 					
 					if (swipeLayout_today != null && swipeLayout_tomorrow != null)
-						update();
+						update(false);
 					
 					return layout;
 				}
@@ -168,10 +175,13 @@ public class MainActivity extends AppCompatActivity
 		switch (item.getItemId())
 		{
 			case R.id.settings:
-				Intent intent = new Intent(this, SettingsActivity.class);
-				this.startActivityForResult(intent, 0);
+				this.startActivity(new Intent(this, SettingsActivity.class));
 				return true;
 			
+			case R.id.cafeteria:
+				this.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(Info.URL_MENU)));
+				return true;
+				
 			case R.id.about:
 				
 				final AlertDialog alertDialog = new AlertDialog.Builder(this).create();
@@ -190,51 +200,7 @@ public class MainActivity extends AppCompatActivity
 				return true;
 				
 			case R.id.test:
-				NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-				
-				Notification.Builder notification = new Notification.Builder(this);
-				
-				StringBuilder text = new StringBuilder();
-				
-				ArrayList<String> grades = dbHelper.getGrades(2);
-				ArrayList<String[]> periods;
-		
-				String ROW = PreferenceManager.getDefaultSharedPreferences(this).getString("row", "");
-
-				for (String grade : grades)
-				{
-					if (ROW.isEmpty() || ROW.equalsIgnoreCase(grade))
-					{
-						periods = dbHelper.getEntries(grade, 2);
-
-						if (periods.isEmpty())
-						{
-							text.append(getString(R.string.regular));
-						}
-						else
-						{
-							for (String[] period : periods)
-							{
-								if (period[1].isEmpty())
-									continue;
-									
-								if (text.length() > 0)
-									text.append("<br />");
-									
-								text.append(period[0]).append(" ").append(period[1].replace("\\", " <br /> "));
-							}
-						}
-					}
-				}
-				notification.setContentTitle("VPlan " + getString(R.string.today) + " " + ROW);
-				notification.setContentText(Html.fromHtml(text.toString()));
-				notification.setStyle(new Notification.BigTextStyle().bigText(Html.fromHtml(text.toString())));
-				notification.setColor(getResources().getColor(R.color.primary));
-				notification.setSmallIcon(R.drawable.ic_launcher);
-				notification.setContentIntent(PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0));
-				
-				nm.notify(R.string.notification_id, notification.build());
-				
+				sendBroadcast(new Intent(MainActivity.this, AlarmReceiver.class));
 				return true;
 				
 				
@@ -249,10 +215,7 @@ public class MainActivity extends AppCompatActivity
 		super.onResume();
 		
 		if (swipeLayout_today != null && swipeLayout_tomorrow != null && System.currentTimeMillis() - PreferenceManager.getDefaultSharedPreferences(this).getLong("lastUpdate", 0) > 1000 * 60 * 5)
-		{
-			PreferenceManager.getDefaultSharedPreferences(this).edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
-			update();
-		}
+			update(false);
 	}
 	
 	
@@ -264,7 +227,12 @@ public class MainActivity extends AppCompatActivity
 		return networkInfo != null && networkInfo.isConnected();
 	}
 	
-	public void update()
+	public void update(View unused)
+	{
+		update(false);
+	}
+	
+	public void update(final boolean force)
 	{
 		swipeLayout_today.setRefreshing(true);
 		swipeLayout_tomorrow.setRefreshing(true);
@@ -292,6 +260,8 @@ public class MainActivity extends AppCompatActivity
 			return;
 		}
 		
+		PreferenceManager.getDefaultSharedPreferences(this).edit().putLong("lastUpdate", System.currentTimeMillis()).apply();
+		
 		try
 		{
 			new AsyncTask<String, Void, ArrayList<View>>()
@@ -301,7 +271,7 @@ public class MainActivity extends AppCompatActivity
 				{
 					try
 					{
-						updateInfo(urls[0], true);
+						updateInfo(MainActivity.this, dbHelper, urls[0], true, force);
 						return updateCards(true);
 					}
 					catch (Exception e)
@@ -336,7 +306,7 @@ public class MainActivity extends AppCompatActivity
 				{
 					try
 					{
-						updateInfo(urls[0], false);
+						updateInfo(MainActivity.this, dbHelper, urls[0], false, force);
 						return updateCards(false);
 					}
 					catch (Exception e)
@@ -370,21 +340,28 @@ public class MainActivity extends AppCompatActivity
 		}
 	}
 	
-	private void updateInfo(String url, boolean today) throws IOException
+	public static void updateInfo(Context context, DBHelper dbHelper, String url, boolean today, boolean force) throws IOException
 	{
 		BufferedReader reader = null;
+		HttpURLConnection conn = null;
 		
 		try 
 		{
-			HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+			conn = (HttpURLConnection) new URL(url).openConnection();
 			conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.155 Safari/537.36");
 			conn.setRequestProperty("Accept-Charset", "ISO-8859-1");
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=iso-8859-1");
 			conn.setReadTimeout(10000);
-			conn.setConnectTimeout(15000);
+			conn.setConnectTimeout(5000);
 			conn.setRequestMethod("GET");
 			conn.setDoInput(true);
 			conn.connect();
+			
+			if (!force && !wasModified(conn, context, today))
+			{
+				conn.disconnect();
+				return;
+			}
 			
 			reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "ISO-8859-1"));        
 
@@ -400,32 +377,40 @@ public class MainActivity extends AppCompatActivity
 			dbHelper.delete(today ? 2 : 3);
 			
 			Matcher m = Pattern.compile("<tr").matcher(contentAsString);
+			Matcher m1;
 			
-			int i = 0;
+			int i = 0, index1;
+			String row;
 			
 			while (m.find())
 			{
 				if (i == 0)
 				{
-					String row = contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start()));
+					row = contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start()));
 
-					Matcher m1 = Pattern.compile("<td").matcher(row);
+					m1 = Pattern.compile("<td").matcher(row);
 					m1.find();
 					
-					int index1 = row.indexOf(">", m1.start());
-					dbHelper.add("title", 0, row.substring(index1 + 1, row.indexOf("<", index1)), today ? 0 : 1);
-					
+					index1 = row.indexOf(">", m1.start());
+					dbHelper.add("title", 0, row.substring(index1 + 1, row.indexOf("<", index1)).trim(), today ? 0 : 1);
 				}
 				if (i > 1)
-					parseColumn(contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), today);
+					parseColumn(context, dbHelper, contentAsString.substring(m.start(), 4 + contentAsString.indexOf("/tr>", m.start())), today);
 					
 				i++;
 			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
 		}
 		finally
 		{
 			if (reader != null)
 				reader.close();
+				
+			if (conn != null)
+				conn.disconnect();
 		}
 	}
 
@@ -436,10 +421,13 @@ public class MainActivity extends AppCompatActivity
 		float dp = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
 
 		TextView text = new TextView(this);
-		text.setTextColor(getResources().getColor(R.color.accent));
 		text.setPadding((int) dp / 2, (int) dp, (int) dp, (int) dp);
-		text.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16);
-		text.setText(Html.fromHtml("<b>" + dbHelper.getContent("title", 0, today ? 0 : 1) + "</b>"));
+		TypedValue appearance = new TypedValue();
+		getTheme().resolveAttribute(android.R.attr.textAppearanceMedium, appearance, true);
+		text.setTextAppearance(appearance.resourceId);
+		text.setTextColor(getResources().getColor(R.color.accent));
+		text.setTypeface(Typeface.defaultFromStyle(Typeface.BOLD));
+		text.setText(dbHelper.getContent("title", 0, today ? 0 : 1));
 
 		result.add(text);
 		
@@ -501,11 +489,20 @@ public class MainActivity extends AppCompatActivity
 				result.add(card);
 			}
 		}
+		
+		text = new TextView(this);
+		text.setPadding((int) dp / 2, (int) dp, (int) dp, (int) dp);
+		text.setTextAppearance(android.R.attr.textAppearanceSmall);
+		text.setTypeface(Typeface.defaultFromStyle(Typeface.ITALIC));
+		text.setText(Html.fromHtml(getString(R.string.last_modified) + ": " + Info.formatDate(this, new Date(PreferenceManager.getDefaultSharedPreferences(this).getLong("lastModified" + (today ? "_today" : "_tomorrow"), 0))) + " • " + 
+								   getString(R.string.last_updated) + ": " + Info.formatDate(this, new Date(PreferenceManager.getDefaultSharedPreferences(this).getLong("lastUpdate", 0)))));
+
+		result.add(text);
 			
 		return result;
 	}
 	
-	public void parseColumn(String row, boolean today)
+	public static void parseColumn(Context context, DBHelper dbHelper, String row, boolean today)
 	{
 		Matcher m = Pattern.compile("<td").matcher(row), m1;
 
@@ -518,7 +515,7 @@ public class MainActivity extends AppCompatActivity
 		while (m.find())
 		{
 			index = row.indexOf(">", m.start());
-			column = row.substring(index + 1, row.indexOf("<", index)).replace("&nbsp;", "").replace("  ", " ");
+			column = row.substring(index + 1, row.indexOf("<", index)).replace("&nbsp;", "").replace("  ", " ").trim();
 			
 			if (i == 0)
 			{
@@ -540,7 +537,7 @@ public class MainActivity extends AppCompatActivity
 						index = m1.end(1);
 					}
 						
-					column = column.substring(index + 1);
+					column = column.substring(index + 1).replace("Std.", "").replace("Stunde", "");
 				}
 				else
 					periods.add(i);
@@ -552,23 +549,23 @@ public class MainActivity extends AppCompatActivity
 
 					if (entry.equalsIgnoreCase("f"))
 					{
-						entry = "<i>" + getString(R.string.ausfall) + "</i>";
+						entry = "<i>" + context.getString(R.string.ausfall) + "</i>";
 					}
 					else if (entry.equalsIgnoreCase("MP"))
 					{
-						entry = "<i>" + getString(R.string.mittagspause) + "</i>";
+						entry = "<i>" + context.getString(R.string.mittagspause) + "</i>";
 					}
 					else if (entry.equalsIgnoreCase("XXX"))
 					{
-						entry = "<i>" + getString(R.string.ausflug) + "</i>";
+						entry = "<i>" + context.getString(R.string.ausflug) + "</i>";
 					}
 					else if (entry.contains("f.a.") || entry.contains("Aufg"))
 					{
-						entry = "<i>" + entry.replace("f.a.", getString(R.string.ausfall)).replace("f.a", getString(R.string.ausfall)).replace("Aufg.", "Aufgaben").replace("Aufgaben", getString(R.string.aufgaben)) + "</i>";
+						entry = "<i>" + entry.replace("f.a.", context.getString(R.string.ausfall)).replace("f.a", context.getString(R.string.ausfall)).replace("Aufg.", "Aufgaben").replace("Aufgaben", context.getString(R.string.aufgaben)) + "</i>";
 					}
 					else if (entry.equalsIgnoreCase("verl") || entry.equalsIgnoreCase("verl."))
 					{
-						entry = "<i>" + getString(R.string.verlegt) + "</i>";
+						entry = "<i>" + context.getString(R.string.verlegt) + "</i>";
 					}
 					
 					for (Integer period : periods)
@@ -580,5 +577,29 @@ public class MainActivity extends AppCompatActivity
 		}
 		
 		dbHelper.add(grade, 0, "", today ? 2 : 3);
+	}
+	
+	
+	public static boolean wasModified(URLConnection conn, Context context, boolean today) throws ParseException
+	{
+		Map<String, List<String>> headerFields = conn.getHeaderFields();
+
+		for (String s : headerFields.keySet()) 
+		{
+			if ("Last-Modified".equals(s))
+			{
+				long time = Info.htmlDateFormat.parse(headerFields.get(s).get(0)).getTime();
+				
+				if (PreferenceManager.getDefaultSharedPreferences(context).getLong("lastModified" + (today ? "_today" : "_tomorrow"), 0) != time)
+				{
+					PreferenceManager.getDefaultSharedPreferences(context).edit().putLong("lastModified" + (today ? "_today" : "_tomorrow"), time).apply();
+					return true;
+				}
+				else 
+					return false;
+			}
+		}
+		
+		return true;
 	}
 }
